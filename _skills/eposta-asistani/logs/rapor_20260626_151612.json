@@ -1,0 +1,27 @@
+{
+  "tarih": "2026-06-26T15:16:07.493199",
+  "hesap": "ikincil",
+  "dry_run": true,
+  "toplam_okunmamis": 1,
+  "kategoriler": {
+    "PROMOSYON": 0,
+    "BILDIRIM": 1,
+    "GEREKSIZ": 0,
+    "ONEMLI_YANIT_GEREK": 0,
+    "ONEMLI_BILGI": 0
+  },
+  "okundu_isaretlenen": 1,
+  "taslak_olusturulan": 0,
+  "hatalar": 0,
+  "detaylar": [
+    {
+      "id": "19f03a0451fd5f88",
+      "from": "Google <no-reply@accounts.google.com>",
+      "subject": "Güvenlik uyarısı",
+      "kategori": "BILDIRIM",
+      "oncelik": "orta",
+      "ozet": "Google Hesabınızdaki Antigravity uygulamasının veri erişimi hakkında bir güvenlik uyarısı.",
+      "taslak_var": false
+    }
+  ]
+}

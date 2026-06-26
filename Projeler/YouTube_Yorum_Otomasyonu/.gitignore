@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+youtube_forcessl_token.json
+youtube_credentials.json
+.pytest_cache/

@@ -1,0 +1,23 @@
+# Bekleyen listesinde göstermek istemediğin sinyalleri buraya ekle.
+# Format: kind + project. Otomatik tespit edildiğinde bile gizlenir.
+#
+# Tipler:
+#   deploy_yok  - .env.example var ama Railway'de servis yok
+#   yarim       - README'de TODO/BEKLİYOR/PENDING geçiyor
+#   doc_eksik   - dokümantasyon dosyası yok
+#   handover    - kökte HANDOVER_*.md var
+#   failed      - Railway deployment FAILED/CRASHED
+#
+# Kasıtlı geliştirme aşamasında olan veya görmek istemediğin projeleri ekle.
+# Aşağıdaki satırlar ÖRNEKTİR — kendi projelerinle değiştir veya sil.
+
+ignored:
+  # Örnek: kasıtlı geliştirme aşamasında, deploy planlı değil
+  - kind: deploy_yok
+    project: Ornek_Worker
+    reason: Geliştirme aşamasında
+
+  # Örnek: dashboard projesinin kendisi (dokümantasyon sinyali bastırma)
+  - kind: doc_eksik
+    project: Proje_Dashboard
+    reason: Dashboard projesinin ekstra dokümantasyonu gerekmiyor

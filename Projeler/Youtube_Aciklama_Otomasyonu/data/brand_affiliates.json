@@ -1,0 +1,5 @@
+{
+  "_NOT": "Marka anahtarı -> affiliate link eşlemesi. İş birliği videolarında LLM marka anahtarını seçer, bu map'ten karşılık gelen link açıklamaya eklenir. Buraya kendi affiliate/iş birliği linklerinizi ekleyin. Anahtar adı kısa ve LLM'in tahmin edebileceği bir kelime olmalı (örn. markanın adı).",
+  "ornek_marka": "https://ornek-marka.com/?ref=KENDI_AFFILIATE_KODUNUZ",
+  "ornek_marka_2": "https://ornek-marka-2.com/l/KENDI_KODUNUZ"
+}

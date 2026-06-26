@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "purpose": "3rd party servislerin kayıt/API key alma sayfaları için merkezi URL referansı. CLAUDE.md ve AGENTS.md'deki 'Servis Kayıt Linki Önerirken' kuralı bu dosyaya bakar.",
+    "updated": "2026-05-17"
+  },
+
+  "kie_ai":      { "label": "Kie AI",      "url": "https://kie.ai?ref=c29fcd9c92ad897e8868df9182112560" },
+  "railway":     { "label": "Railway",     "url": "https://railway.com?referralCode=bttO3T" },
+  "apify":       { "label": "Apify",       "url": "https://apify.com?fpr=dfev5h" },
+  "firecrawl":   { "label": "Firecrawl",   "url": "https://firecrawl.link/dolunay-oezeren" },
+  "elevenlabs":  { "label": "ElevenLabs",  "url": "https://try.elevenlabs.io/3wxzupqkfs06" },
+  "apollo":      { "label": "Apollo.io",   "url": "https://get.apollo.io/8voiw17w8t3z" },
+  "netlify":     { "label": "Netlify",     "url": "https://join.netlify.com/oul66s085a8b" },
+  "manychat":    { "label": "ManyChat",    "url": "https://manychat.partnerlinks.io/9vfoe2mjua3j-ogcg6e" },
+  "upload_post": { "label": "Upload-Post", "url": "https://www.upload-post.com/?linkId=lp_144414&sourceId=dolunay&tenantId=upload-post-app" },
+
+  "openai":      { "label": "OpenAI",      "url": "https://platform.openai.com" },
+  "anthropic":   { "label": "Anthropic",   "url": "https://console.anthropic.com" },
+  "notion":      { "label": "Notion",      "url": "https://www.notion.so/my-integrations" },
+  "hunter":      { "label": "Hunter.io",   "url": "https://hunter.io" },
+  "groq":        { "label": "Groq",        "url": "https://console.groq.com" },
+  "perplexity":  { "label": "Perplexity",  "url": "https://www.perplexity.ai" },
+  "imgbb":       { "label": "ImgBB",       "url": "https://api.imgbb.com" },
+  "supadata":    { "label": "Supadata",    "url": "https://supadata.ai" },
+  "gemini":      { "label": "Google AI Studio", "url": "https://aistudio.google.com" },
+  "google_cloud":{ "label": "Google Cloud Console", "url": "https://console.cloud.google.com" },
+  "supabase":    { "label": "Supabase",    "url": "https://supabase.com" },
+  "telegram_bot":{ "label": "Telegram BotFather", "url": "https://t.me/BotFather" },
+  "telegram_userinfo": { "label": "Telegram userinfobot", "url": "https://t.me/userinfobot" },
+  "replicate":   { "label": "Replicate",   "url": "https://replicate.com" },
+  "make":        { "label": "Make.com",    "url": "https://www.make.com" },
+  "fal":         { "label": "Fal AI",      "url": "https://fal.ai" },
+  "resend":      { "label": "Resend",      "url": "https://resend.com" },
+  "x_api":       { "label": "X Developer Portal", "url": "https://developer.x.com" },
+  "youtube_api": { "label": "YouTube Data API", "url": "https://console.cloud.google.com" }
+}

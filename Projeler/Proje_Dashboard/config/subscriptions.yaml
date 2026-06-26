@@ -1,0 +1,48 @@
+# Sabit Aylık Abonelikler + Tahmini AI Kullanım Maliyetleri
+#
+# İki bölüm var:
+# 1) `fixed` — sabit fiyatlı abonelikler (Pro plan, lisans vs.)
+# 2) `ai_usage_estimates` — kullanım-bazlı API'ler (gerçek $ Console'dan
+#    bakılır; aşağıdaki tahminler ay sonu fatura yaklaşıkları)
+#
+# `category` alanı dashboard'da "amaca göre gruplama" için kullanılır:
+#   ai_beyin   — düşünen/yazan AI motorları
+#   uretim     — görsel/video/ses üretimi
+#   arastirma  — web scraping, lead bulma, araştırma
+#   altyapi    — barındırma, yayın, mail, mesajlaşma altyapısı
+#
+# Aşağıdaki satırlar ÖRNEKTİR — kendi aboneliklerinle değiştir.
+# Canlı API'den $ çekilenler (ElevenLabs, Hunter, Firecrawl, Apify, OpenAI,
+# Anthropic) buradaki aynı `provider` alanlı kalemi otomatik override eder.
+
+fixed:
+  - name: Örnek AI Editör (Pro plan)
+    provider: anthropic
+    category: ai_beyin
+    monthly_usd: 0
+    note: Örnek — kendi sabit aboneliğini buraya yaz
+    console_url: https://console.anthropic.com/
+
+  - name: Örnek Yayın Aracı (Pro)
+    provider: typefully
+    category: altyapi
+    monthly_usd: 0
+    note: Örnek sabit abonelik
+    console_url: https://typefully.com/settings/billing
+
+ai_usage_estimates:
+  - name: Örnek Görsel/Video API
+    provider: kie
+    category: uretim
+    monthly_usd: 0
+    used_by: [ornek-cron-servis]
+    note: Örnek — kullanım-bazlı API tahmini
+    console_url: https://kie.ai/billing
+
+  - name: Örnek Scraping API
+    provider: apify
+    category: arastirma
+    monthly_usd: 0
+    used_by: [ornek-worker-servis]
+    note: Örnek kullanım-bazlı API
+    console_url: https://console.apify.com/billing

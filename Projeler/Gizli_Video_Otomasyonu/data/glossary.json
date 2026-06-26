@@ -1,0 +1,7 @@
+{
+  "_aciklama": "ASR (otomatik altyazı) bazı marka/terimleri yanlış duyar. Buraya 'canonical' (doğru yazım) + 'variants' (yanlış duyulan biçimler) eklenir. Eşleştirme kelime sınırına saygılı + büyük/küçük harf duyarsızdır. Yeni hata gördükçe buraya KENDİ marka/terimlerini ekle; kod değişmez. Aşağıdakiler sadece birer örnektir.",
+  "entries": [
+    { "canonical": "ChatGPT", "variants": ["çet gpt", "çat gpt", "chat gpt", "cetgpt"] },
+    { "canonical": "Notion", "variants": ["noşın", "noshın", "noşn"] }
+  ]
+}

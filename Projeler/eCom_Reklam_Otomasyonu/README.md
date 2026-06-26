@@ -1,0 +1,267 @@
+# eCom Reklam Otomasyonu
+
+> Telegram bot ile profesyonel ürün reklam videoları üretim otomasyonu.
+> Seedance 2.0 + ElevenLabs + Replicate pipeline.
+> UGC (User Generated Content) multi-scene desteği ile dinamik reklam üretimi.
+
+**Proje:** Antigravity Ecosystem  
+**Tip:** Telegram Bot (Worker — Polling)  
+**Durum:** 🟢 Production Ready
+
+---
+
+## 🎯 Ne Yapar?
+
+Kullanıcı Telegram'dan bir ürün ve marka bilgisi paylaşır → Bot doğal sohbetle bilgi toplar → Marka araştırması yapar → AI ile reklam senaryosu üretir → Maliyet hesaplar → Onay sonrası sinematik reklam videosu üretir.
+
+### Pipeline Adımları:
+1. **Bilgi Toplama** — GPT-4.1 Mini ile doğal sohbet (form doldurmak yok)
+2. **Araştırma** — Perplexity ile marka analizi + GPT-4.1 Vision ile ürün görseli analizi
+3. **Senaryo** — AI ile shot listesi, dış ses metni, maliyet hesaplama
+4. **Görsel** — Nano Banana 2 ile sinematik giriş karesi
+5. **Video** — Seedance 2.0 ile reklam videosu üretimi (tek sahne veya multi-scene UGC)
+6. **Dış Ses** — ElevenLabs ile profesyonel Türkçe seslendirme
+7. **Birleştirme** — Replicate ile video + ses merge (+ multi-scene concat)
+8. **Teslim** — Video Telegram'a gönderilir + Notion'a loglanır
+
+### UGC Multi-Scene Pipeline:
+UGC (User Generated Content) stili seçildiğinde 3 sahneli dinamik akış aktive olur:
+- **Sahne 1:** Unboxing / First Impression
+- **Sahne 2:** Product-in-Use
+- **Sahne 3:** Hero Shot / CTA
+
+Her sahne paralel olarak Seedance 2.0'da üretilir ve `lucataco/video-merge` modeli ile birleştirilir.
+
+---
+
+## 🏗️ Mimari
+
+```
+eCom_Reklam_Otomasyonu/
+├── main.py                      ← Telegram bot entry point
+├── config.py                    ← Fail-fast env doğrulama
+├── logger.py                    ← Standart logger
+├── requirements.txt             ← Kilitli bağımlılıklar
+├── nixpacks.toml                ← Railway deploy config
+├── .env.example                 ← Örnek env dosyası
+├── .gitignore                   ← Güvenlik
+├── README.md                    ← Bu dosya
+├── core/
+│   ├── __init__.py
+│   ├── conversation_manager.py  ← State machine + doğal sohbet
+│   ├── scenario_engine.py       ← Senaryo üretim + maliyet hesaplama
+│   └── production_pipeline.py   ← Video üretim orchestrator
+└── services/
+    ├── __init__.py
+    ├── openai_service.py        ← GPT-4.1 Mini (chat + vision)
+    ├── perplexity_service.py    ← Marka araştırması
+    ├── imgbb_service.py         ← Görsel → Public URL
+    ├── kie_api.py               ← Seedance 2.0 + Nano Banana 2
+    ├── elevenlabs_service.py    ← Doğrudan ElevenLabs TTS
+    ├── replicate_service.py     ← Video + ses birleştirme + multi-scene concat
+    ├── notion_service.py        ← Notion loglama
+    └── chat_logger.py           ← Notion Chat Hafızası
+```
+
+---
+
+## 🔄 Conversation Flow
+
+```
+/start → Hoş geldin mesajı
+   ↓
+CHATTING: Kullanıcı sadece link/ürün adı/ürün görseli paylaşır
+   → AI (Süre, Çözünürlük, Dil, Reklam Senaryosu) gibi değerleri ZORLAMADAN ve SORU SORMADAN otonom tahmin eder. Sadece gerekirse format sorar.
+   ↓
+RESEARCHING: Perplexity + GPT Vision
+   ↓
+SCENARIO_APPROVAL: Senaryo + maliyet → [Onayla] [Düzelt] [İptal]
+   ↓
+PRODUCING: Nano Banana 2 → Seedance 2.0 → ElevenLabs → Replicate
+   ↓
+DELIVERED: Video gönderildi + Notion log
+```
+
+---
+
+## 💰 Maliyet Tablosu (Seedance 2.0)
+
+| Çözünürlük | Image-to-Video | Text-to-Video |
+|------------|---------------|---------------|
+| **480p** | 11.5 credit/s ($0.058/s) | 19 credit/s ($0.095/s) |
+| **720p** | 25 credit/s ($0.125/s) | 41 credit/s ($0.205/s) |
+
+**Tipik örnekler:**
+- 10s, 720p, image-to-video: $1.25
+- 10s, 480p, image-to-video: $0.58
+- 15s, 720p, text-to-video: $3.08
+
+---
+
+## ⚙️ Ortam Değişkenleri
+
+```env
+# Mod
+ENV=production                    # development = dry-run
+
+# Telegram
+TELEGRAM_ECOM_BOT_TOKEN=...
+TELEGRAM_ADMIN_CHAT_ID=<TELEGRAM_CHAT_ID>
+
+# OpenAI (GPT-4.1 Mini)
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-4.1-mini
+
+# Perplexity
+PERPLEXITY_API_KEY=...
+
+# ImgBB
+IMGBB_API_KEY=...
+
+# Kie AI (Seedance 2.0 + Nano Banana 2)
+KIE_API_KEY=...
+
+# ElevenLabs (Türkçe dış ses)
+ELEVENLABS_API_KEY=...
+ELEVENLABS_MODEL=eleven_multilingual_v2
+
+# Replicate (Video+ses birleştirme)
+REPLICATE_API_TOKEN=...
+
+# Notion (Üretim logları & Chat)
+NOTION_SOCIAL_TOKEN=...
+NOTION_DB_ECOM_REKLAM=...
+NOTION_CHAT_DB_ID=<NOTION_DB_ID>
+```
+
+---
+
+## 🚀 Kullanım
+
+### Lokal (DRY-RUN):
+```bash
+export ENV=development
+# .env dosyasından değişkenleri yükle
+python main.py
+```
+
+### Railway Deploy:
+- **Builder:** Nixpacks (Python 3.11)
+- **Start command:** `python main.py`
+- **Tip:** Worker (CronJob DEĞİL — sürekli polling)
+
+---
+
+## 🎥 Canlı Demo Modu (YouTube/Showcase için)
+
+`DASHBOARD_ENABLED=1` ile bot lokalde çalıştırıldığında pipeline'ın 5 aşamasını
+n8n tarzı izleme paneli üzerinden canlı gösteren bir dashboard açılır:
+**Ürün analizi → Senaryo → Video üretimi → Caption → Sosyal medyaya yükleme.**
+Her aşama bittiğinde AI'ın ürettiği ara çıktı (ürün thumbnail, senaryo metni,
+caption, paylaşım linki) ekranda kart olarak görünür. Sonda final video oynatıcı açılır.
+
+### Kullanım:
+```bash
+# 1) Production Railway'i geçici durdur (Telegram polling tek instance olmalı)
+#    Railway dashboard → ecom-reklam-otomasyonu → Service → Stop
+
+# 2) Lokalde dashboard ile birlikte başlat
+cd Projeler/eCom_Reklam_Otomasyonu
+set -a; source .env; set +a
+DASHBOARD_ENABLED=1 DASHBOARD_PORT=8000 python main.py
+
+# 3) Tarayıcıda http://localhost:8000 aç
+# 4) Telegram bot'una ürün URL'si gönder → dashboard canlı izlenir
+# 5) Çekim bitince Ctrl+C ile durdur, Railway'i tekrar başlat
+```
+
+### Mock test (gerçek pipeline tetiklemeden dashboard'u dene):
+```bash
+# Monorepo kökünden:
+python _skills/canli-demo/mock.py Projeler/eCom_Reklam_Otomasyonu --port 8000
+```
+
+---
+
+## 🛡️ Erişim Kontrolü
+
+Bot sadece `TELEGRAM_ADMIN_CHAT_ID` ile tanımlanan kullanıcıya yanıt verir.
+Diğer kullanıcılara "⛔ Bu botu kullanma yetkiniz yok." mesajı döner.
+
+---
+
+## 📊 Notion Loglama
+
+Her üretim Notion database'ine kaydedilir:
+- Marka, Ürün, Konsept
+- Video Süresi, Format, Çözünürlük, Dil
+- Tahmini Maliyet ($)
+- Durum (Üretiliyor / Tamamlandı / Hata)
+- Video URL, Hata Mesajı
+- Tarih
+
+---
+
+## 🧪 Test Suite
+
+Proje, 68 otonom test içeren kapsamlı bir test altyapısına sahiptir.
+
+### Çalıştırma:
+```bash
+# Önce env değişkenlerini yükle (.env veya Railway env)
+source .venv/bin/activate
+python test_bot.py
+```
+
+### Test Grupları:
+| Grup | Test Sayısı | Açıklama |
+|------|------------|----------|
+| İmport & Config | 18 | Tüm modüllerin import testi + config doğrulama |
+| State Machine | 7 | `/start`, session reset, fotoğraf, state koruması |
+| LLM Bilgi Çıkarma | 15 | GPT-4.1 Mini ile doğal sohbet + JSON çıkarma |
+| Senaryo Engine | 8 | Maliyet hesabı, senaryo özeti formatı |
+| Servis Bağlantıları | 6 | OpenAI, Perplexity, Kie AI, ElevenLabs gerçek API |
+| Edge Cases | 7 | Uzun mesaj, emoji, İngilizce, çoklu /start |
+| Pipeline DRY-RUN | 3 | Tam production pipeline simülasyonu |
+| Notion Çıkarma | 3 | URL → Page ID dönüşümü |
+| Voiceover Tahmini | 2 | TTS süre hesabı |
+
+> **Not:** Test suite gerçek API çağrıları yapar. Env değişkenleri (OPENAI_API_KEY, KIE_API_KEY vb.) tanımlı olmalıdır.
+
+---
+
+## 📝 Bilinen Konular & Notlar
+
+- **Model:** GPT-4.1 Mini kullanılıyor (GPT-5 Mini reasoning modelindeki boş content sorunu nedeniyle geçiş yapıldı). Retry mekanizması korunuyor.
+- **ElevenLabs ses değişiklikleri:** Sesler kaldırılabilir. Varsayılan ses: **Sarah** (Kadın, olgun, güven verici).
+- **DRY-RUN:** `ENV=development` veya `DRY_RUN=1` ayarlandığında pipeline gerçek API çağrısı yapmaz, simülasyon döner.
+- **Async/Sync dengesi:** Proje asyncio tabanlı; dış servisler senkron `requests` kullanır. Tüm blocking API çağrıları `asyncio.to_thread()` ile sarmalanır.
+- **Audio hosting:** Birincil: tmpfiles.org (24 saat TTL), fallback: file.io (tek kullanımlık).
+- **Bellek yönetimi:** Session'lar 10dk inaktivite sonrası temizlenir, chat geçmişi 20 mesajla sınırlıdır.
+- **Input validasyonu:** aspect_ratio ("9:16", "16:9", "1:1"), resolution ("480p", "720p"), video_duration (int cast) otomatik normalize edilir.
+
+---
+
+## 📋 Değişiklik Geçmişi
+
+| Tarih | Değişiklik |
+|----------|------------|
+| 2026-05-14 | **Stabilizasyon Tur 3 — dashboard substage routing** — Görselleştirme değişikliklerinin dokunduğu substage emitter mantığında 3 bug: (1) `retry_no_ref`/`retry_safety` yanlış `ASSETS_STEPS` sınıflandırması — tamamlanmış "assets" substage'ini yeniden açıyordu (`SCENE_RETRY_STEPS` grubuna taşındı). (2) `_run_production` CancelledError + Exception path'leri dashboard'a hiç dokunmuyordu — produce stage + substage'ler sonsuza kadar "active" kalıyordu (fail temizliği eklendi). (3) `_produce_multi_scene` `scene_done` sahnenin kendi index'ini gönderiyordu ama sahneler paralel render ediliyor — monotonik tamamlanma sayacı eklendi (progress bar artık 1/5→5/5 düzgün ilerliyor). |
+| 2026-05-14 | **Stabilizasyon Tur 2 — Conflict 409 recovery + edge case'ler** — (1) **Kritik:** Conflict 409 recovery zinciri iki yerden kırıktı — `error_handler` flag set ediyordu ama `run_polling()` Conflict'te return etmiyordu (`stop_running()` eklendi) + `__main__` `SystemExit`'i yutup exit 0 ile kapatıyordu, Railway `ON_FAILURE` restart etmiyordu (sıfır-dışı exit kodları artık re-raise ediliyor). Production bot 4+ saat sessizce conflict-loop'ta kalmıştı. (2) Stale `pub:` callback guard: PUBLISHED/IDLE state'inde eski platform butonuna basınca bozuk boş picker oluşuyordu. (3) Dashboard run-leak: `pub:cancel` + publishing-flow erken çıkışları dashboard koşusunu sonsuza kadar "running" bırakıyordu. |
+| 2026-05-13 | **Stabilizasyon — Upload-Post + dashboard regresyon paketi** — (1) "🚀 Şimdi Paylaş" double-press guard: lock altında check + spawn + assign (eskiden iki paralel publish task aynı video'yu Upload-Post'a iki kez yolluyor + Notion'a duplicate comment atıyordu). (2) "❌ İptal" artık background `_publish_and_track` task'ını gerçekten cancel ediyor (eskiden Upload-Post çağrısı + 180s polling iptale rağmen arka planda devam ediyordu). (3) Upload-Post boş results+errors döndürdüğünde header artık "🎉 Paylaşım Tamam!" yerine "⏳ Paylaşım Durumu Belirsiz" — kullanıcıyı yanıltmıyor. (4) `requirements.txt` temizliği: uvicorn duplicate satır kaldırıldı, `qrcode>=7.4` → `qrcode==7.4.2` (strict pinning). |
+| 2026-04-25 | **v3.3 Producer LLM Mimari** — Sabit süre ve kelime sayısı sınırları kaldırılarak senaryo kurgusunun ve sürenin dinamik olarak LLM (Producer) tarafından belirlenmesi sağlandı. `generate_scenario` fonksiyonu Vision yeteneği kazanacak şekilde güncellendi. |
+| 2026-04-24 | **v3.2 UGC Multi-Scene Pipeline** — UGC tarzı 3 sahneli (Unboxing, Product-in-Use, Hero Shot) video üretim desteği eklendi. Paralel Seedance 2.0 görevleri + `lucataco/video-merge` ile sahne birleştirme. `scenario_engine.py`, `production_pipeline.py` ve `replicate_service.py` güncellendi. |
+| 2026-04-21 | **v3.1 Aspect Ratio & Stability Fix** — Kullanıcı/Agent tercih girdisi (Dikey, 16:9 vb.) Kie AI tarafından istenen formatlara zorunlu normalize edildi (422 engellendi). Telegram bot 409 Conflict çökmelerini önlemek için Webhook silme sonrası `asyncio.sleep(2)` timeout eklendi. |
+| 2026-04-18 | **v3.0 Stabilizasyon** — `FIRECRAWL_API_KEY` bağımlılığı Railway'e entegre edildi, eski `web_scraper_service.py` ve `bs4`, `lxml` bağımlılıkları temizlendi. Tümüyle stabil, SIFIR hata üretim ortamı onaylandı. |
+| 2026-04-18 | **v3.0 Deterministik Otomasyon** — Firecrawl entegre edildi, WebScraper servis kaldırıldı. Nano Banana 2 kaldırılıp Seedance 2.0 image_input (reference) moduna geçildi. Sohbet adımları tamamen kaldırılıp URL okuma ve deterministik tek tuşla/onayla pipeline mimarisine geçiş yapıldı. |
+| 2026-04-18 | **v2.7 Otonomlaştırma** — ChatGPT Promptu otonomlaştırıldı, video süresi, reklam konsepti, dil ve çözünürlük için gereksiz sorular kaldırılıp sistemin kendisinin inisiyatif alması sağlandı. Karşılama akışı kısaltıldı. |
+| 2026-04-14 | **v2.6 Stabilizasyon** — Kapsamlı kod ve bağımlılık health check çalıştırıldı. Sistem tamamıyla stabil ve architecture-strict hale getirildi. |
+| 2026-04-12 | **v2.5 Yeni Özellik** — Chat Hafızası (Notion Inline Database) entegrasyonu, asenkron konuşma loglaması |
+| 2026-04-12 | **v2.1 Stabilizasyon** — 24 bug fix: event loop blocking aşıldı (asyncio.to_thread), Vision API NoneType retry, session bellek sızıntısı TTL cleanup, Markdown parse fallback, Perplexity exception handling, aspect_ratio/resolution validasyonu, voiceover süre kontrolü, tmpfiles.org fallback, Replicate FileOutput cast, asyncio task hata yutma fix'i |
+| 2026-04-11 | İlk deploy → Railway SUCCESS |
+| 2026-04-11 | GPT-5 Mini API uyumluluğu: `max_tokens`→`max_completion_tokens`, `temperature` kaldırıldı |
+| 2026-04-11 | Boş content retry mekanizması (3 deneme) |
+| 2026-04-11 | ElevenLabs Rachel→Sarah ses güncellemesi |
+| 2026-04-11 | 68 testlik otonom test suite eklendi |
+| 2026-04-11 | Model değişikliği: GPT-5 Mini → GPT-4.1 Mini (reasoning model boş content sorunu) |
+

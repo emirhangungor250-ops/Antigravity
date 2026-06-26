@@ -1,0 +1,24 @@
+{
+  "name": "reklam-fabrikasi",
+  "version": "1.7.0",
+  "description": "Claude Code için Reklam Fabrikası eklentisi. Şu beceriler: müşteri sesi araştırması, marka DNA'sı, reklam casusu, marka karakteri yayınlama, ürün fotoğrafı, statik reklam, yüz tutarlılıklı UGC senaryo ve video, reklam metni, çoğaltıcı, rakip yeniden yapılandırma, tek dosya HTML açılış sayfası, artı claude.ai web uygulamasındaki Meta resmi Ads MCP için zengin bağlamlı prompt hazırlayan aktarım iş akışı.",
+  "author": {
+    "name": "<KULLANICI_ADI>"
+  },
+  "repository": "<GITHUB_REPO>",
+  "license": "MIT",
+  "userConfig": {
+    "fal_api_key": {
+      "title": "Fal AI API Anahtarı",
+      "description": "Fal AI API anahtarınız. https://fal.ai/dashboard/keys adresinden alın. Yol C üretimi için statik, ugc-prompt, multiplier ve rebuild becerileri kullanır.",
+      "type": "string",
+      "sensitive": true
+    },
+    "apify_api_key": {
+      "title": "Apify API Anahtarı",
+      "description": "Apify Personal API token'ınız. apify_api_xxx şeklinde görünür. https://console.apify.com/account/integrations adresinden ücretsiz alın. Ücretsiz katman aylık 5 dolar kredi içerir, yaklaşık 90 ugc-scraper çalıştırması. ugc-scraper ve spy becerileri kullanır.",
+      "type": "string",
+      "sensitive": true
+    }
+  }
+}

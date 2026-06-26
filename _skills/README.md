@@ -1,0 +1,58 @@
+# 🛠 Skills
+
+Bu klasör, Antigravity'ye öğretilen kalıcı yetenekleri (skill'leri) içerir.
+
+Her skill, kendi klasörü içinde bir `SKILL.md` dosyasıyla tanımlanır.
+Antigravity bir göreve başlamadan önce ilgili skill'i okuyarak nasıl davranacağını öğrenir.
+
+---
+
+## Mevcut Skill'ler ve Kullanan Agent'lar
+
+| # | Skill | Açıklama | Kullanan Agent(lar) |
+|---|-------|---------|---------------------|
+| 1 | `rakip-analiz` | Rakip analizi ve izleme | 🤖 `icerik-uretim` |
+| 2 | `folder-paylasim` | Klasör bazlı paylaşım | 🤖 `yayinla-paylas` |
+| 3 | `kie-ai-video-production` | Video, görsel ve ses üretimi | 🤖 `icerik-uretim` |
+| 4 | `lead-generation` | Potansiyel müşteri ve veri toplama (Apify) | 🤖 `musteri-kazanim` |
+| 5 | `eposta-gonderim` | Toplanan verilere e-posta gönderimi (Gmail) | 🤖 `musteri-kazanim` |
+| 6 | `canli-yayina-al` | GitHub + Railway ile 7/24 deployment | 🤖 `yayinla-paylas` |
+| 7 | `canli-demo` | Projeleri lokalde başlatıp paylaşılabilir canlı demo URL'i üretir | — (bağımsız) |
+| 8 | `folder-paylasim` | Proje export ve paylaşıma hazırlama | 🤖 `yayinla-paylas` |
+| 9 | `rakip-analiz` | Rakiplerin landing page analizi | 🤖 `musteri-kazanim` |
+| 10 | `egitim-gorselleri` | Web temelli görselleştirmeler | — (bağımsız) |
+| 11 | `website-olusturucu` | Web sitesi oluşturma | — (bağımsız) |
+| 12 | `sifre-yonetici` | Merkezi şifre/token yönetimi ve dağıtımı | Tüm agent'lar |
+| 13 | `fatura-olusturucu` | Sosyal medya iş birlikleri için PDF invoice üretimi | 🤖 `yayinla-paylas` |
+| 14 | `reels-kapak` | AI ile Instagram Reels kapak görseli üretimi (Kie AI pipeline) | 🤖 `icerik-uretim` |
+| 15 | `telefon-formatlayici` | Telefon numarası formatlama ve doğrulama | — (bağımsız) |
+| 16 | `supabase-postgres-best-practices` | Supabase RLS, veritabanı fonksiyonları ve query optimizasyonu kuralları | Tüm projeler |
+| 17 | `notion-api-rules` | Notion MCP/API dualite, Idempotency ve Rate Limiting standartları | Tüm projeler |
+| 18 | `railway-deploy-rules` | Railway startup delays, fail-fast env config ve deploy stabilitesi | Tüm projeler |
+| 19 | `apify-scraping-rules` | Apify Store hazır aktör kullanımı, maliyet/hız optimizasyonu (Cheerio) | 🤖 `musteri-kazanim` vb. |
+| 20 | `telegram-bot-rules` | getUpdates conflict çözümü (webhook/polling), alert fatigue önleme | Tüm projeler |
+| 21 | `llm-structured-output-rules` | OpenAI/Anthropic/Groq için Pydantic ve JSON output zorunlulukları | Tüm projeler |
+---
+
+## Yeni Skill Nasıl Eklenir?
+
+1. `_skills/` altında yeni bir klasör aç (örn. `apify-analizi/`)
+2. İçine `SKILL.md` dosyası oluştur
+3. `SKILL.md` içine şu formatı kullan:
+
+```markdown
+---
+name: Skill Adı
+description: Bu skill ne zaman kullanılır?
+---
+
+## Açıklama
+...
+
+## Adımlar
+1. ...
+2. ...
+
+## Çıktı Formatı
+...
+```

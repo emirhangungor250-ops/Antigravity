@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "apify": {
+      "type": "http",
+      "url": "https://mcp.apify.com/?actors=scraptik/tiktok-api,scrape-creators/best-tiktok-transcripts-scraper&enableAddingActors=true",
+      "headers": {
+        "Authorization": "Bearer ${user_config.apify_api_key}"
+      }
+    },
+    "playwright": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/playwright-mcp-launcher.mjs"]
+    },
+    "fal-ai": {
+      "type": "http",
+      "url": "https://mcp.fal.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.fal_api_key}"
+      }
+    },
+    "higgsfield": {
+      "type": "http",
+      "url": "https://mcp.higgsfield.ai/mcp"
+    }
+  }
+}

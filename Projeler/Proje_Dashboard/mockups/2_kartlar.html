@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Otomasyon Filosu — Tasarım 2: Filo Kartları</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#0d1117; color:#e6edf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    padding:32px 40px; line-height:1.45;
+  }
+  .mockup-tag {
+    display:inline-block; background:#1f6feb; color:#fff; font-size:11px;
+    font-weight:700; padding:3px 9px; border-radius:5px; letter-spacing:.5px;
+    margin-bottom:14px;
+  }
+  h1 { font-size:22px; font-weight:700; margin-bottom:4px; }
+  .sub { color:#7d8590; font-size:13px; margin-bottom:24px; }
+
+  .healthbar {
+    display:flex; gap:0; height:38px; border-radius:9px; overflow:hidden;
+    margin-bottom:8px; border:1px solid #30363d;
+  }
+  .healthbar div { display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; }
+  .healthbar .g { background:rgba(63,185,80,.25);  color:#56d364; }
+  .healthbar .y { background:rgba(210,153,34,.25); color:#e3b341; }
+  .healthbar .r { background:rgba(248,81,73,.25);  color:#ff7b72; }
+  .healthbar-l { font-size:11px; color:#7d8590; margin-bottom:26px; }
+
+  h2.group {
+    font-size:13px; text-transform:uppercase; letter-spacing:.6px;
+    color:#7d8590; margin:28px 0 14px; display:flex; align-items:center; gap:10px;
+  }
+  h2.group::after { content:""; flex:1; height:1px; background:#21262d; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
+  .card {
+    background:#161b22; border:1px solid #30363d; border-radius:12px;
+    padding:16px 18px; position:relative; transition:.12s;
+  }
+  .card:hover { border-color:#444c56; transform:translateY(-2px); }
+  .card.red { border-color:rgba(248,81,73,.5); }
+  .card.yellow { border-color:rgba(210,153,34,.45); }
+
+  .card-head { display:flex; align-items:center; gap:9px; margin-bottom:3px; }
+  .light { width:11px; height:11px; border-radius:50%; flex:0 0 auto; }
+  .light.g { background:#3fb950; box-shadow:0 0 8px rgba(63,185,80,.6); }
+  .light.y { background:#d29922; box-shadow:0 0 8px rgba(210,153,34,.6); }
+  .light.r { background:#f85149; box-shadow:0 0 8px rgba(248,81,73,.7); }
+  .card-name { font-size:15px; font-weight:700; }
+  .card-sched { font-size:11px; color:#58a6ff; margin-bottom:10px;
+    background:rgba(31,111,235,.1); display:inline-block; padding:2px 7px;
+    border-radius:5px; }
+  .card-desc { font-size:12px; color:#adbac7; margin-bottom:12px; min-height:32px; }
+  .card-runs { display:flex; gap:14px; font-size:11px; border-top:1px solid #21262d; padding-top:10px; }
+  .card-runs .k { color:#7d8590; }
+  .card-runs .v { color:#e6edf3; font-weight:600; }
+  .card-runs .v.warn { color:#e3b341; }
+  .card-runs .v.bad { color:#ff7b72; }
+  .badge {
+    position:absolute; top:14px; right:14px; font-size:9px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.5px; padding:2px 6px; border-radius:4px;
+  }
+  .badge.r { background:rgba(248,81,73,.2); color:#ff7b72; }
+  .badge.y { background:rgba(210,153,34,.2); color:#e3b341; }
+</style>
+</head>
+<body>
+
+<div class="mockup-tag">TASARIM 2 / 3 — DUMMY VERİ</div>
+<h1>Otomasyon Filosu — Filo Kartları</h1>
+<p class="sub">Her cron bir kart. Işık yeşilse sorun yok. Sağlığı taramak en hızlı bu görünümde.</p>
+
+<div class="healthbar">
+  <div class="g" style="flex:18">18 sağlıklı</div>
+  <div class="y" style="flex:2">2</div>
+  <div class="r" style="flex:1">1</div>
+</div>
+<div class="healthbar-l">21 cron · 18 sağlıklı, 2 gecikmiş, 1 ölü — sorunlu olanlar aşağıda kırmızı/sarı kenarlıkla işaretli</div>
+
+<h2 class="group">Otonom Kalite Sistemi · 7 cron</h2>
+<div class="grid">
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Bug Hunt</span></div>
+    <span class="card-sched">Her gün 02:00</span>
+    <div class="card-desc">Rotasyonla bir projeyi derin tarar, bulduğu bug'ları düzeltir ya da PR açar.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">bugün 02:04</span></span><span><span class="k">Sonraki:</span> <span class="v">yarın 02:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Test Coverage</span></div>
+    <span class="card-sched">Salı + Cuma 03:00</span>
+    <div class="card-desc">Rotasyonla bir projeye kritik path testleri yazar, kodu değiştirmez.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">2 gün önce</span></span><span><span class="k">Sonraki:</span> <span class="v">Cuma 03:00</span></span></div>
+  </div>
+  <div class="card yellow">
+    <span class="badge y">Henüz koşmadı</span>
+    <div class="card-head"><span class="light y"></span><span class="card-name">Kör Otomasyon Avı</span></div>
+    <span class="card-sched">Perşembe 03:00</span>
+    <div class="card-desc">Açık uçlu insan girdisini katı kuralla işleyen "sessiz körlük" yerlerini bulur.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v warn">henüz yok</span></span><span><span class="k">Sonraki:</span> <span class="v">bugün 03:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Simplify</span></div>
+    <span class="card-sched">Cumartesi 04:00</span>
+    <div class="card-desc">Dead code, duplikasyon ve gereksiz soyutlamayı temizler. Davranış sabit kalır.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">5 gün önce</span></span><span><span class="k">Sonraki:</span> <span class="v">Cmt 04:00</span></span></div>
+  </div>
+  <div class="card red">
+    <span class="badge r">Ölü</span>
+    <div class="card-head"><span class="light r"></span><span class="card-name">Runbook</span></div>
+    <span class="card-sched">Pazar 05:00</span>
+    <div class="card-desc">RUNBOOK.md'si olmayan bir projeye deploy + triage rehberi üretir.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v bad">14 gün önce, hata</span></span><span><span class="k">Sonraki:</span> <span class="v">Paz 05:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Cost Optimization</span></div>
+    <span class="card-sched">Çarşamba 07:00</span>
+    <div class="card-desc">Railway servislerini tarar, worker→cron geçiş önerileri ve atıl servis adayları çıkarır.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">dün 07:02</span></span><span><span class="k">Sonraki:</span> <span class="v">Çar 07:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Haftalık Brief Mail</span></div>
+    <span class="card-sched">Pazartesi 11:00</span>
+    <div class="card-desc">Önceki 7 günün özetini tek mailde sana gönderir.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">bugün 11:03</span></span><span><span class="k">Sonraki:</span> <span class="v">Pzt 11:00</span></span></div>
+  </div>
+</div>
+
+<h2 class="group">Bakım Cron'ları · 6 cron</h2>
+<div class="grid">
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Watchdog Tepkileyici</span></div>
+    <span class="card-sched">Her gün 09:00</span>
+    <div class="card-desc">WatchdogInternal mailini okur, sorunları kendi düzeltir, kalanı özetler.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">bugün 09:01</span></span><span><span class="k">Sonraki:</span> <span class="v">yarın 09:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Dependency Security</span></div>
+    <span class="card-sched">Pazartesi 06:00</span>
+    <div class="card-desc">requirements.txt + package.json'da CVE tarar, küçük yükseltmeleri otomatik yapar.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">6 gün önce</span></span><span><span class="k">Sonraki:</span> <span class="v">Pzt 06:00</span></span></div>
+  </div>
+  <div class="card yellow">
+    <span class="badge y">Gecikmiş</span>
+    <div class="card-head"><span class="light y"></span><span class="card-name">Watchdog Bakım</span></div>
+    <span class="card-sched">Cumartesi 12:00</span>
+    <div class="card-desc">Watchdog'un izlediği proje listesini ve hata desenlerini günceller.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v warn">8 gün önce</span></span><span><span class="k">Sonraki:</span> <span class="v">Cmt 12:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Starter Kit Yenileme</span></div>
+    <span class="card-sched">Cumartesi 13:00</span>
+    <div class="card-desc">Skool öğrencileri için temizlenmiş starter kit kopyasını yeniden üretir.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">3 gün önce</span></span><span><span class="k">Sonraki:</span> <span class="v">Cmt 13:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Disk Temizleyici</span></div>
+    <span class="card-sched">Pazartesi 00:00</span>
+    <div class="card-desc">10MB+ çöp dosyaları siler, .gitignore desenlerini günceller.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">3 gün önce</span></span><span><span class="k">Sonraki:</span> <span class="v">Pzt 00:00</span></span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="light g"></span><span class="card-name">Ölü Proje Raporu</span></div>
+    <span class="card-sched">Ayın 1'i 05:00</span>
+    <div class="card-desc">60+ gün commit'siz + Railway'de servisi olmayan projeleri arşiv adayı olarak raporlar.</div>
+    <div class="card-runs"><span><span class="k">Son:</span> <span class="v">13 gün önce</span></span><span><span class="k">Sonraki:</span> <span class="v">1 Haz 05:00</span></span></div>
+  </div>
+</div>
+
+<h2 class="group">Railway Servisleri · 16 cron · sürekli çalışan</h2>
+<div class="grid">
+  <div class="card"><div class="card-head"><span class="light g"></span><span class="card-name" style="font-size:13px">ornek-outreach-cron</span></div><div class="card-runs" style="border:0;padding-top:4px"><span><span class="k">Son deploy:</span> <span class="v">başarılı</span></span></div></div>
+  <div class="card"><div class="card-head"><span class="light g"></span><span class="card-name" style="font-size:13px">ornek-reklam-bot</span></div><div class="card-runs" style="border:0;padding-top:4px"><span><span class="k">Son deploy:</span> <span class="v">başarılı</span></span></div></div>
+  <div class="card yellow"><div class="card-head"><span class="light y"></span><span class="card-name" style="font-size:13px">ornek-video-cron-2</span></div><div class="card-runs" style="border:0;padding-top:4px"><span><span class="k">Son deploy:</span> <span class="v warn">2 gün önce build</span></span></div></div>
+  <div class="card"><div class="card-head"><span class="light g"></span><span class="card-name" style="font-size:13px">ornek-onboarding-worker</span></div><div class="card-runs" style="border:0;padding-top:4px"><span><span class="k">Son deploy:</span> <span class="v">başarılı</span></span></div></div>
+  <div class="card"><div class="card-head"><span class="light g"></span><span class="card-name" style="font-size:13px">akilli-watchdog</span></div><div class="card-runs" style="border:0;padding-top:4px"><span><span class="k">Son deploy:</span> <span class="v">başarılı</span></span></div></div>
+  <div class="card"><div class="card-head"><span class="light g"></span><span class="card-name" style="font-size:13px">+ 11 servis daha</span></div><div class="card-runs" style="border:0;padding-top:4px"><span><span class="k">Hepsi</span> <span class="v">sağlıklı</span></span></div></div>
+</div>
+
+</body>
+</html>

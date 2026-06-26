@@ -1,0 +1,111 @@
+# ═══════════════════════════════════════════════════
+# 🤝 ÖRNEK — AI/Marka İş Birliği Outreach Kampanyası
+# ═══════════════════════════════════════════════════
+# Amaç: Markalara influencer olarak iş birliği teklifi göndermek
+# Referans: _agents/musteri-kazanim/AGENT.md
+# Kullanım: Bu dosyayı kopyala → config/{kampanya-adi}.yaml
+#           olarak kaydet → kendi kampanya bilgilerinle doldur.
+# ═══════════════════════════════════════════════════
+
+# --- 🏷️ KAMPANYA BİLGİLERİ ---
+kampanya_adi: "ornek-marka-isbirligi-2026"
+aciklama: "AI, tech ve dijital araç markalarına influencer iş birliği teklifi"
+hedef_tip: "b2b_sirket"       # Marka/şirketlere ulaşıyoruz
+durum: "draft"
+
+# --- 🎯 HEDEF KİTLE (ICP) ---
+icp:
+  platform: ["instagram"]     # Instagram üzerinden marka hesaplarını buluyoruz
+  bolge: "Global"
+  dil: ["EN"]
+
+  # B2B parametreleri — marka profili
+  sirket_buyuklugu: "5-500"
+  hedef_pozisyonlar:
+    - "Marketing"
+    - "Growth"
+    - "Influencer Marketing"
+    - "Partnerships"
+    - "PR"
+    - "Founder"
+    - "CEO"
+    - "Brand"
+  sektor:
+    - "AI"
+    - "SaaS"
+    - "Tech"
+    - "Digital Tools"
+    - "Video AI"
+    - "Design AI"
+    - "Coding AI"
+
+# --- 🔍 ARAMA KRİTERLERİ ---
+arama:
+  anahtar_kelimeler:
+    - "AI tool"
+    - "artificial intelligence"
+    - "AI app"
+  hashtag_listesi: []
+  rakip_hesaplar: []
+  max_lead_sayisi: 50
+
+  # ── Özel filtreler ──
+  false_positive_listesi:     # Hedef kategoriye uymayan hesaplar — kendi listeni gir
+    - "<FALSE_POSITIVE_HANDLE_1>"
+    - "<FALSE_POSITIVE_HANDLE_2>"
+  buyuk_sirket_listesi:       # Outreach yapılmayacak büyük şirketler — kendi listeni gir
+    - "<BUYUK_SIRKET_HANDLE_1>"
+    - "<BUYUK_SIRKET_HANDLE_2>"
+  calisan_markalar_dosyasi: "calisan_markalar.json"  # Halihazırda iş birliği yapılan markalar
+
+# --- 📧 OUTREACH AYARLARI ---
+outreach:
+  gonderen_email: ""          # ← Gönderen Gmail adresi
+  sablon_dili: "EN"
+  sablon_dosyasi: "templates/email-en.md"
+  dry_run: true
+
+  # Kişiselleştirme bilgileri
+  gonderici_adi: "<GONDERICI_ADI>"
+  ekstra_bilgi: "<KISA_PORTFOLYO_OZETI>"   # Örn: erişim, daha önce çalışılan markalar
+
+  # İletişim stratejisi: DM + Email çift kanallı
+  dm_oncesi: true             # Önce DM gönder, sonra email
+  dm_sablon_dosyasi: "templates/email-en.md"  # DM şablonu da template'lerde
+
+  # Email bulma strateji sırası
+  email_bulma_sirasi:
+    - "brand_info_db"         # Markanın bilinen genel emaili
+    - "hunter"                # Hunter.io ile domain'den kişisel email
+    - "apollo"                # Apollo.io fallback
+
+  deger_onerisi: |
+    I have a viral campaign idea that could make your brand stand out.
+  cta: "If you're interested, just reply to this email. I'd love to share the details with you!"
+
+# --- ⏱️ SEQUENCE AYARLARI ---
+sequence:
+  profil: "ajans"             # Yaratıcı ton, portfolio ve sonuç ağırlıklı
+  toplam_adim: 3
+  bekleme_suresi_acilmadi: 5
+  bekleme_suresi_cevaplanmadi: 4
+  gunluk_gonderim_limiti: 30
+  gonderim_araligi: 5
+  gonderim_saatleri: "09:00-17:00"
+  gonderim_gunleri: ["Pzt", "Sal", "Car", "Per", "Cum"]
+  saat_dilimi: "UTC+3"
+
+# --- 📁 DOSYA YOLLARI ---
+dosyalar:
+  ham_cikti: "data/ornek-marka-isbirligi_raw.json"
+  zenginlestirilmis: "data/ornek-marka-isbirligi_enriched.json"
+  mesajlar: "data/ornek-marka-isbirligi_messages.json"
+  log: "data/ornek-marka-isbirligi_log.csv"
+  takip: "data/ornek-marka-isbirligi_takip.csv"
+
+# --- 📋 NOTLAR ---
+# Tipik mantık:
+#   1. Instagram'daki hedef marka hesaplarını tespit et
+#   2. Her marka için Hunter.io → Apollo.io waterfall ile kişisel email bul
+#   3. İki şablon: DM mesajı (Instagram) + Email (genel ve kişisel)
+#   4. False positive filtresi + büyük şirket filtresi + halihazırda çalışılan marka filtresi

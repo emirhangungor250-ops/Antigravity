@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+logs/
+cache/
+.DS_Store
+*.tmp
+*.swp
+.pytest_cache/
+.ruff_cache/

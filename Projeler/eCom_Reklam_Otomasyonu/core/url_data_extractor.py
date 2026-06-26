@@ -1,0 +1,556 @@
+from __future__ import annotations
+
+"""
+URL Data Extractor — Deterministik Ürün Veri Çıkarma
+======================================================
+E-ticaret URL'sinden tek seferde tam ürün verisi çıkarır.
+
+Pipeline:
+1. Firecrawl ile URL scrape (tek scraper)
+2. LLM (GPT-4.1 Mini) ile structured data extraction
+3. LLM Vision ile en iyi 1-3 ürün görseli seçimi
+
+Firecrawl başarısız olursa kullanıcıya net Türkçe hata döner; ek fallback
+scraper yoktur. Kullanıcıya SIFIR soru sorulur - her şey otomatik çıkarılır.
+"""
+
+import re
+
+from logger import get_logger
+
+log = get_logger("url_data_extractor")
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# LLM PROMPT — Ürün Verisi Çıkarma
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXTRACTION_PROMPT = """Sen bir e-ticaret ürün analiz uzmanısın. Aşağıdaki web sayfası verisinden şu bilgileri JSON formatında çıkar.
+
+## Kurallar:
+- Sayfada açıkça bulamadığın bilgileri makul şekilde çıkar (örn: marka adı domain'den anlaşılabilir)
+- ad_concept alanı için ürüne uygun, kısa ve etkileyici bir Türkçe reklam konsepti üret
+- target_audience alanı için ürünün doğal hedef kitlesini belirle
+- Yanıtın SADECE JSON olmalı, başka hiçbir metin ekleme
+
+## Çıkarılacak JSON formatı:
+{{
+    "brand_name": "Marka adı",
+    "product_name": "Ürün adı (kısa ve net)",
+    "product_description": "Ürünün 2-3 cümlelik açıklaması",
+    "ad_concept": "Kısa, etkileyici Türkçe reklam konsepti (1-2 cümle, sinematik ve dinamik)",
+    "target_audience": "Hedef kitle tanımı (1 cümle)",
+    "product_category": "Ürün kategorisi (örn: Elektronik, Giyim, Kozmetik, Mobilya)"
+}}
+
+## Sayfa Verisi:
+---
+{page_content}
+---"""
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# LLM PROMPT — En İyi Görsel Seçimi
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMAGE_SELECTION_PROMPT = """Aşağıdaki ürün görsellerini incele. Bu görseller bir AI video modeline (Seedance 2.0) REFERANS GÖRSEL olarak verilecek. Model bu görsellere bakarak video üretecek. Bu yüzden sadece ÜRÜNÜN FİZİKSEL görsellerini seç.
+
+## Seçim Kriterleri (öncelik sırasına göre):
+1. Ürünü en net ve yüksek kalitede gösteren
+2. Reklam için en etkileyici açıya sahip
+3. Arka planı temiz veya profesyonel
+4. Ürünün tamamını gösteren (kırpılmamış)
+
+## Kurallar:
+- En az 1, en fazla 3 görsel seç
+- Seçtiğin görseller BİRBİRİNDEN FARKLI (çeşitli açılar/pozlar) olmalıdır. Aynı veya çok benzer fotoğrafların kopyalarını birlikte seçme. Çeşitlilik sağla.
+- Seçtiğin görsellerin indeks numaralarını JSON array olarak döndür
+- SADECE JSON döndür: {{"selected_indices": [0, 2, 4]}}
+
+## ASLA SEÇME (bu türler video referansı olarak UYGUN DEĞİLDİR):
+- Üzerinde yazı/metin bulunan infografikler (örn: "Ne zaman uygulanır?", "Nasıl kullanılır?", özellik tabloları)
+- Kullanım talimatı veya adım adım uygulama görselleri
+- Boyut karşılaştırma, before/after kolaj görselleri
+- İçerik listesi, sertifika veya uyarı görselleri
+- Logo, ikon, banner veya web sitesi UI elementleri
+- Düşük çözünürlüklü veya bulanık görseller
+- Lifestyle görselleri (ürünün kendisi NET görünmüyorsa)
+
+## SADECE SEÇ:
+- Ürünün ambalajını/şişesini/kutusunu net gösteren fotoğraflar
+- Ürünün kendisinin yakın çekim (close-up) fotoğrafları
+- Ürünün profesyonel stüdyo çekimleri
+
+## Görsel URL Listesi:
+{image_list}"""
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# LLM PROMPT — Lite (hızlı kategori)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LITE_EXTRACTION_PROMPT = """Aşağıdaki sayfa başlığı/meta bilgisinden ürün için kısa kategori çıkarımı yap.
+
+## Kurallar:
+- SADECE JSON döndür, başka metin ekleme.
+- category alanı ŞU listeden bir tanesi olsun (en yakın olanı seç): skincare, beauty, fashion, tech, food, supplement, accessory, home, fitness, kids, pet, jewelry, automotive, general.
+- brand_name domain'den veya başlıktan tahmin edilebilir.
+- product_name kısa ve net olsun.
+
+## Çıktı formatı:
+{{
+    "brand_name": "Marka",
+    "product_name": "Ürün adı",
+    "category": "kategori_kodu"
+}}
+
+## Sayfa Bilgisi:
+---
+{page_brief}
+---"""
+
+
+class URLDataExtractor:
+    """
+    URL → Structured Data pipeline.
+
+    Firecrawl ile URL'den tam ürün verisi çıkarır. Kullanıcıya soru sormaz.
+    Eski `web_scraper_fallback` parametresi kaldırıldı (proje içinde
+    WebScraperService implementasyonu yok; dead code temizlendi).
+    """
+
+    def __init__(
+        self,
+        openai_service,
+        firecrawl_service,
+    ):
+        """
+        Args:
+            openai_service: OpenAIService instance (chat_json + vision)
+            firecrawl_service: FirecrawlService instance (tek scraper)
+        """
+        self.openai = openai_service
+        self.firecrawl = firecrawl_service
+
+    async def extract(self, url: str) -> dict:
+        """
+        URL'den tam ürün verisi çıkarır.
+
+        Pipeline:
+        1. Firecrawl scrape → markdown + metadata
+        2. LLM structured extraction
+        3. Vision ile en iyi görselleri seç
+
+        Args:
+            url: E-ticaret ürün sayfası URL'i
+
+        Returns:
+            dict: {
+                "brand_name": str,
+                "product_name": str,
+                "product_description": str,
+                "ad_concept": str,
+                "target_audience": str,
+                "product_category": str,
+                "best_image_urls": list[str],   # 1-3 en iyi ürün görseli
+                "all_image_urls": list[str],     # Tüm bulunan görseller
+                "page_content": str,             # Ham içerik (loglama)
+                "extraction_source": str,        # "firecrawl"
+            }
+
+        Raises:
+            ValueError: Hiçbir veri çıkarılamadıysa
+        """
+        import asyncio
+
+        log.info(f"URL veri çıkarma başlatılıyor: {url}")
+
+        # ── ADIM 1: Web scraping ──
+        page_content, image_urls, metadata, source = await asyncio.to_thread(
+            self._scrape_url, url
+        )
+
+        if not page_content and not image_urls:
+            raise ValueError(
+                f"URL'den hiçbir veri çıkarılamadı: {url}\n"
+                "Lütfen farklı bir ürün linki deneyin."
+            )
+
+        # ── ADIM 2: LLM ile structured data extraction ──
+        extracted = await asyncio.to_thread(
+            self._extract_structured_data, page_content, metadata
+        )
+
+        # ── ADIM 3: En iyi görselleri seç ──
+        best_images = await asyncio.to_thread(
+            self._select_best_images, image_urls
+        )
+
+        result = {
+            **extracted,
+            "best_image_urls": best_images,
+            "all_image_urls": image_urls,
+            "page_content": page_content[:2000],  # Loglama için kırp
+            "extraction_source": source,
+        }
+
+        log.info(
+            f"URL veri çıkarma tamamlandı: "
+            f"marka='{result.get('brand_name', 'N/A')}', "
+            f"ürün='{result.get('product_name', 'N/A')}', "
+            f"{len(best_images)} referans görsel, "
+            f"kaynak={source}"
+        )
+
+        return result
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # INTERNAL METHODS
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    def _scrape_url(self, url: str) -> tuple[str, list[str], dict, str]:
+        """
+        URL'yi Firecrawl ile scrape eder.
+
+        Returns:
+            tuple: (page_content, image_urls, metadata, source)
+        """
+        try:
+            result = self.firecrawl.scrape(url)
+
+            if result["success"] and result["markdown"]:
+                markdown = result["markdown"]
+                metadata = result.get("metadata", {})
+                image_urls = self.firecrawl.extract_images_from_markdown(markdown)
+
+                # Metadata'dan ek görseller (og:image vb.)
+                og_image = metadata.get("ogImage")
+                if og_image and og_image not in image_urls:
+                    image_urls.insert(0, og_image)
+
+                log.info(f"Firecrawl başarılı: {len(markdown)} char, "
+                         f"{len(image_urls)} görsel")
+                return markdown, image_urls, metadata, "firecrawl"
+
+            log.warning(f"Firecrawl başarısız: {result.get('error')}")
+
+        except Exception:
+            log.warning("Firecrawl hatası", exc_info=True)
+
+        # Firecrawl başarısız - extract() yukarıda ValueError fırlatıp
+        # kullanıcıya net Türkçe hata mesajı dönecek.
+        log.error(f"Scraping başarısız: {url}")
+        return "", [], {}, "none"
+
+    def _extract_structured_data(self, page_content: str, metadata: dict) -> dict:
+        """
+        LLM ile sayfa içeriğinden structured ürün verisi çıkarır.
+
+        Args:
+            page_content: Markdown veya düz metin sayfa içeriği
+            metadata: Firecrawl metadata (title, description vb.)
+
+        Returns:
+            dict: Çıkarılan structured veri
+        """
+        # İçeriği zenginleştir — metadata varsa ekle
+        enriched_content = ""
+        if metadata:
+            if metadata.get("title"):
+                enriched_content += f"Sayfa Başlığı: {metadata['title']}\n"
+            if metadata.get("description"):
+                enriched_content += f"Meta Açıklama: {metadata['description']}\n"
+            if metadata.get("sourceURL"):
+                enriched_content += f"Kaynak URL: {metadata['sourceURL']}\n"
+            enriched_content += "---\n"
+
+        # WHY: TOPLAM prompt budget'ı 6000 char olmalı — metadata uzun gelirse
+        # (örn. çok uzun title/description) page_content'ten kalan budget kadar
+        # alıyoruz. Eski hali metadata + 6000 page_content idi; bazı sitelerde
+        # 6500+ char prompt'a yol açıyordu (cost spike + token waste).
+        TOTAL_BUDGET = 6000
+        remaining_budget = max(500, TOTAL_BUDGET - len(enriched_content))
+        enriched_content += page_content[:remaining_budget]
+
+        prompt = EXTRACTION_PROMPT.format(page_content=enriched_content)
+
+        try:
+            messages = [
+                {"role": "system", "content": "Sen bir JSON çıktı üreten asistansın. Her zaman geçerli JSON döndür."},
+                {"role": "user", "content": prompt},
+            ]
+
+            result = self.openai.chat_json(messages, max_tokens=1000)
+
+            # Zorunlu alanları doğrula
+            required_fields = ["brand_name", "product_name", "ad_concept"]
+            for field in required_fields:
+                if not result.get(field):
+                    log.warning(f"LLM çıkarma: '{field}' alanı boş, "
+                                f"metadata'dan doldurulmaya çalışılıyor")
+                    if field == "brand_name" and metadata.get("sourceURL"):
+                        # WHY marketplace exclusion: trendyol/hepsiburada/amazon
+                        # gibi marketplace domain'leri marka DEĞİL; gerçek marka
+                        # ürün başlığında geçer. Bu listedeki domain'lere düşersek
+                        # boş bırak — scenario engine "marka bulunamadı" yoluna
+                        # gitsin (yanlış marka adıyla reklam üretmektense).
+                        from urllib.parse import urlparse
+                        domain = urlparse(metadata["sourceURL"]).netloc
+                        domain = domain.replace("www.", "").split(".")[0].lower()
+                        MARKETPLACE_DOMAINS = {
+                            "trendyol", "hepsiburada", "amazon", "n11", "gittigidiyor",
+                            "etsy", "ebay", "aliexpress", "walmart", "target",
+                            "ciceksepeti", "morhipo", "boyner", "modanisa",
+                        }
+                        if domain in MARKETPLACE_DOMAINS:
+                            log.warning(
+                                f"Marketplace domain '{domain}' marka olarak "
+                                f"kullanılmadı — gerçek marka extraction'da bulunmadı"
+                            )
+                            result[field] = ""
+                        else:
+                            result[field] = domain.capitalize()
+                    elif field == "product_name" and metadata.get("title"):
+                        result[field] = metadata["title"][:50]
+
+            log.info(
+                f"LLM structured extraction tamamlandı: "
+                f"marka='{result.get('brand_name')}', "
+                f"ürün='{result.get('product_name')}'"
+            )
+            return result
+
+        except Exception:
+            log.error("LLM structured extraction hatası", exc_info=True)
+            # Minimal fallback — en azından metadata'dan bir şeyler çıkar
+            return {
+                "brand_name": metadata.get("title", "Bilinmeyen Marka"),
+                "product_name": metadata.get("title", "Bilinmeyen Ürün"),
+                "product_description": metadata.get("description", ""),
+                "ad_concept": "Ürünü keşfet, farkı hisset.",
+                "target_audience": "Genel tüketici",
+                "product_category": "Genel",
+            }
+
+    def _select_best_images(self, image_urls: list[str]) -> list[str]:
+        """
+        LLM Vision ile en iyi 1-3 ürün görselini seçer.
+
+        Args:
+            image_urls: Tüm bulunan görsel URL'leri
+
+        Returns:
+            list[str]: Seçilen en iyi 1-3 görsel URL'i
+        """
+        if not image_urls:
+            log.warning("Görsel URL'si bulunamadı — boş liste dönüyor")
+            return []
+
+        # URL validasyonu — desteklenmeyen formatları filtrele ve duplicate/kopya (aynı) resimleri temizle
+        valid_urls = []
+        seen_base_urls = set()
+        
+        for url in image_urls:
+            if not self.openai._validate_image_url(url):
+                continue
+                
+            # Mükerrer (aynı parametreli/farklı parametreli aynı) görselleri engellemek için parse et
+            import urllib.parse
+            parsed = urllib.parse.urlparse(url)
+            base_url = f"{parsed.netloc}{parsed.path}"
+            
+            if base_url not in seen_base_urls:
+                seen_base_urls.add(base_url)
+                valid_urls.append(url)
+
+        if not valid_urls:
+            log.warning("Geçerli görsel URL'si bulunamadı (format filtresi sonrası)")
+            return []
+
+        if len(valid_urls) <= 3:
+            log.info(f"3 veya daha az görsel var ({len(valid_urls)}) — hepsi seçildi")
+            return valid_urls
+
+        # LLM Vision ile seçim yap (max 10 görsel gönder)
+        candidates = valid_urls[:10]
+
+        try:
+            # Görsel listesini formatla
+            image_list = "\n".join(
+                f"[{i}] {url}" for i, url in enumerate(candidates)
+            )
+            prompt = IMAGE_SELECTION_PROMPT.format(image_list=image_list)
+
+            # Vision API ile görselleri gönder
+            content_list = [{"type": "text", "text": prompt}]
+            for url in candidates:
+                content_list.append({
+                    "type": "image_url",
+                    "image_url": {"url": url, "detail": "low"},
+                })
+
+            messages = [{"role": "user", "content": content_list}]
+
+            response = self.openai.client.chat.completions.create(
+                model=self.openai.model,
+                messages=messages,
+                max_completion_tokens=200,
+                response_format={"type": "json_object"},
+            )
+
+            content = response.choices[0].message.content
+            if not content:
+                log.warning("Vision API boş yanıt döndürdü — ilk 3 görsel kullanılıyor")
+                return candidates[:3]
+
+            import json
+            result = json.loads(content)
+            selected_indices = result.get("selected_indices", [0])
+
+            # İndeksleri doğrula
+            selected_urls = []
+            for idx in selected_indices:
+                if isinstance(idx, int) and 0 <= idx < len(candidates):
+                    selected_urls.append(candidates[idx])
+
+            if not selected_urls:
+                log.warning("Vision geçersiz indeksler döndürdü — ilk görsel kullanılıyor")
+                return [candidates[0]]
+
+            log.info(f"Vision {len(candidates)} görsel arasından "
+                     f"{len(selected_urls)} tanesini seçti: "
+                     f"indeksler={selected_indices}")
+            return selected_urls
+
+        except Exception:
+            log.warning("Vision görsel seçim hatası — ilk 3 görsel kullanılıyor",
+                        exc_info=True)
+            return candidates[:3]
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ⚡ LITE EXTRACT — sadece kategori (5-10s)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    async def extract_lite(self, url: str) -> dict:
+        """Hızlı kategori çıkarımı — sadece title/meta okur, görsel seçmez.
+
+        Format butonları gösterilirken paralel çalışır; LLM'in dinamik tarz
+        önerileri üretebilmesi için ürün kategorisini erkenden öğrenir.
+
+        Returns:
+            dict: {"brand_name": str, "product_name": str, "category": str}
+        """
+        import asyncio
+
+        log.info(f"⚡ Lite extract başlıyor: {url}")
+
+        try:
+            result = await asyncio.to_thread(self.firecrawl.scrape, url)
+        except Exception:
+            log.warning("Lite extract: Firecrawl hatası", exc_info=True)
+            return {"brand_name": "", "product_name": "", "category": "general"}
+
+        if not result.get("success"):
+            log.warning(f"Lite extract: Firecrawl başarısız — {result.get('error')}")
+            return {"brand_name": "", "product_name": "", "category": "general"}
+
+        metadata = result.get("metadata", {}) or {}
+        markdown = result.get("markdown", "") or ""
+
+        page_brief_parts = []
+        if metadata.get("title"):
+            page_brief_parts.append(f"Başlık: {metadata['title']}")
+        if metadata.get("description"):
+            page_brief_parts.append(f"Meta Açıklama: {metadata['description']}")
+        if metadata.get("ogTitle"):
+            page_brief_parts.append(f"OG Başlık: {metadata['ogTitle']}")
+        if metadata.get("ogDescription"):
+            page_brief_parts.append(f"OG Açıklama: {metadata['ogDescription']}")
+        if metadata.get("sourceURL"):
+            page_brief_parts.append(f"URL: {metadata['sourceURL']}")
+        # En fazla ilk 800 karakter markdown — kategori için yeterli
+        if markdown:
+            page_brief_parts.append(f"İçerik (kısaltılmış): {markdown[:800]}")
+
+        page_brief = "\n".join(page_brief_parts) if page_brief_parts else url
+
+        prompt = LITE_EXTRACTION_PROMPT.format(page_brief=page_brief)
+
+        try:
+            messages = [
+                {"role": "system", "content": "Sen bir JSON çıktı üreten asistansın. Sadece geçerli JSON döndür."},
+                {"role": "user", "content": prompt},
+            ]
+            data = await asyncio.to_thread(
+                self.openai.chat_json, messages, max_tokens=200
+            )
+            category = (data.get("category") or "general").strip().lower()
+            log.info(
+                f"⚡ Lite extract tamam: brand='{data.get('brand_name')}', "
+                f"product='{data.get('product_name')}', category='{category}'"
+            )
+            return {
+                "brand_name": data.get("brand_name", "") or "",
+                "product_name": data.get("product_name", "") or "",
+                "category": category,
+            }
+        except Exception:
+            log.warning("Lite extract LLM hatası — general fallback", exc_info=True)
+            return {"brand_name": "", "product_name": "", "category": "general"}
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # YARDIMCI METODLAR
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    @staticmethod
+    def is_valid_product_url(url: str) -> tuple[bool, str]:
+        """Ürün satış sayfası URL'i için pre-validation.
+
+        Returns:
+            (is_valid, error_message_tr)
+            error_message_tr: kullanıcıya gösterilecek Türkçe hata; valid ise "".
+        """
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse((url or "").strip())
+            if parsed.scheme not in ("http", "https"):
+                return False, "Lütfen http veya https ile başlayan bir link gönder."
+            if not parsed.netloc or "." not in parsed.netloc:
+                return False, "Geçersiz site adresi - linkte alan adı eksik."
+            blacklist = {
+                "t.me", "telegram.me",
+                "x.com", "twitter.com", "www.x.com", "www.twitter.com",
+                "facebook.com", "www.facebook.com", "fb.com",
+                "instagram.com", "www.instagram.com",
+                "tiktok.com", "www.tiktok.com",
+                "youtube.com", "www.youtube.com", "youtu.be",
+                "linkedin.com", "www.linkedin.com",
+            }
+            if parsed.netloc.lower() in blacklist:
+                return False, (
+                    "Lütfen bir ürün satış sayfasının linkini gönder, "
+                    "sosyal medya linki değil."
+                )
+            return True, ""
+        except Exception:
+            return False, "Link okunamadı, tekrar dener misin?"
+
+    @staticmethod
+    def extract_url_from_text(text: str) -> str | None:
+        """
+        Metin içinden URL çıkarır.
+
+        Args:
+            text: Kullanıcı mesajı
+
+        Returns:
+            str | None: Bulunan ilk URL veya None
+        """
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        match = re.search(url_pattern, text)
+        if match:
+            url = match.group(0)
+            # Sonundaki noktalama işaretlerini temizle
+            url = url.rstrip(".,;:!?)")
+            return url
+        return None

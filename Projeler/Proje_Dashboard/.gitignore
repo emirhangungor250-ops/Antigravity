@@ -1,0 +1,6 @@
+# Üretilen çıktılar (her run yeniden oluşur)
+proje-dashboard.html
+data/
+__pycache__/
+*.pyc
+.env

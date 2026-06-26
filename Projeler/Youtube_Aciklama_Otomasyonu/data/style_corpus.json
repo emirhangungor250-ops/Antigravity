@@ -1,0 +1,14 @@
+[
+  {
+    "_NOT": "Buraya kendi YouTube kanalınızdan örnek video açıklamalarını koyun. Bu liste, LLM'in sizin yazım stilinizi (link blokları, chapter formatı, ton, CTA yapısı) öğrenmesi için kullanılır. En az 10-20 gerçek video açıklaması önerilir. scripts/build_style_corpus.py çalıştırarak bu dosyayı otomatik da üretebilirsiniz.",
+    "title": "Örnek Video Başlığı",
+    "url": "https://www.youtube.com/watch?v=ORNEK_VIDEO_ID",
+    "description": "Buraya bu videonun TAM açıklama metnini yapıştırın. Kendi tarzınızı yansıtsın: giriş cümlesi, link blokları, chapter listesi (00:00 formatında), kapanış. LLM bu örneklerden sizin sesinizi taklit etmeyi öğrenir."
+  },
+  {
+    "_NOT": "İkinci örnek. İstediğiniz kadar ekleyin.",
+    "title": "Örnek Video Başlığı 2",
+    "url": "https://www.youtube.com/watch?v=ORNEK_VIDEO_ID_2",
+    "description": "İkinci örnek video açıklaması."
+  }
+]

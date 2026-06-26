@@ -1,0 +1,24 @@
+{
+  "_sablon_notu": "Buraya toplantı / balo salonu ve etkinlik olanaklarınızı yazın.",
+  "meta": {
+    "hotel": "<TESIS ADI>",
+    "version": "<surum/etiket>",
+    "lang": "tr",
+    "last_updated": "<YYYY-MM-DD>"
+  },
+  "data": {
+    "halls": [
+      {
+        "name": "<salon adı>",
+        "area_m2": 0,
+        "capacity": {"theatre": 0, "classroom": 0, "banquet": 0},
+        "equipment": ["<ekipman 1>", "<ekipman 2>"]
+      }
+    ],
+    "notes": "<etkinlik / organizasyon notu>"
+  },
+  "faq": [
+    {"q": "<örnek toplantı sorusu>", "a": "<örnek cevap>"}
+  ],
+  "routing_triggers": ["toplantı", "balo", "salon", "konferans", "etkinlik"]
+}

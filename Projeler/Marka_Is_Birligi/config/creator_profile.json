@@ -1,0 +1,16 @@
+{
+  "_comment": "Outreach gönderen kişinin profil verisi + email signature. personalizer.py ve fallback template'lerinde kullanılır. Buraya KENDİ bilgilerini yaz. recent_collabs ve top_results alanlarını yeni iş birliği geldikçe güncelle.",
+  "name": "<KULLANICI_ADI>",
+  "email": "<EMAIL>",
+  "website": "<WEBSITE>",
+  "country": "<ULKE>",
+  "instagram": "<INSTAGRAM_URL>",
+  "tiktok": "<TIKTOK_URL>",
+  "youtube": "<YOUTUBE_URL>",
+  "total_views": "<TOPLAM_IZLENME>",
+  "tagline": "<KISA_TANITIM_CUMLESI>",
+  "recent_collabs": "<SON_ISBIRLIKLERI_VIRGULLE>",
+  "top_results": [
+    {"brand": "<ORNEK_MARKA>", "views": "<IZLENME>", "url": "<ICERIK_URL>"}
+  ]
+}

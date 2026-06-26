@@ -1,0 +1,222 @@
+import os
+from datetime import datetime, date, timezone
+from notion_client import fetch_published_videos, fetch_payment_amounts
+from database import get_pending_notifications
+from email_client import send_email_notification
+from ops_logger import get_ops_logger
+
+ops = get_ops_logger("Isbirligi_Tahsilat_Takip", "Pipeline")
+
+
+def _sentinel_path():
+    """UTC tarihli sentinel dosya yolu — Railway restartPolicyMaxRetries karşı koruma."""
+    today_utc = datetime.now(timezone.utc).date().isoformat()
+    return f"/tmp/isbirligi_sent_{today_utc}.flag"
+
+
+def _already_sent_today():
+    return os.path.exists(_sentinel_path())
+
+
+def _mark_sent_today():
+    try:
+        with open(_sentinel_path(), "w") as f:
+            f.write(datetime.now(timezone.utc).isoformat())
+    except Exception as e:
+        # Sentinel yazılamazsa görünür log; mail zaten gitti, retry'de yine korumasız kalırız.
+        print(f"⚠️ Sentinel yazılamadı: {e}")
+        ops.warning("Sentinel yazılamadı", str(e))
+
+BRACKETS = [
+    ("yellow", "🟡 Sarı (14-29 gün)", "#faad14", "#fffbe6"),
+    ("red",    "🔴 Kırmızı (30-59 gün)", "#ff4d4f", "#fff1f0"),
+    ("black",  "⚫ Siyah (60+ gün)", "#1f1f1f", "#ececec"),
+]
+
+
+def _fmt_amount(amount):
+    if amount is None:
+        return "—"
+    if float(amount).is_integer():
+        return f"${int(amount):,}"
+    return f"${amount:,.2f}"
+
+
+_BRAND_SEPARATORS = [" - ", " – ", " — ", " | ", ": ", " x ", " X ", " ile "]
+
+
+def _brand_label(title):
+    if not title:
+        return ""
+    t = title
+    for sep in _BRAND_SEPARATORS:
+        if sep in t:
+            t = t.split(sep, 1)[0]
+            break
+    words = t.strip().split()
+    return words[0] if words else ""
+
+
+def _brand_key(title):
+    return _brand_label(title).lower()
+
+
+def _render_table(items, color):
+    from itertools import groupby
+    items_sorted = sorted(
+        items,
+        key=lambda it: (_brand_key(it["title"]), it.get("published_date") or ""),
+    )
+
+    parts = []
+    for _, group_iter in groupby(items_sorted, key=lambda it: _brand_key(it["title"])):
+        group = list(group_iter)
+        if len(group) > 1:
+            brand_label = _brand_label(group[0]["title"]) or "—"
+            brand_total = sum((it["amount"] or 0) for it in group)
+            has_unknown = any(it["amount"] is None for it in group)
+            subtotal_label = _fmt_amount(brand_total) + (" (+ bilinmeyen)" if has_unknown else "")
+            parts.append(f"""
+            <tr style="background:#f5f5f5;">
+                <td style="padding:10px 12px;font-weight:700;color:#222;font-size:15px;">▾ {brand_label} <span style="color:#888;font-weight:400;font-size:13px;">({len(group)} kayıt)</span></td>
+                <td style="padding:10px 12px;text-align:right;font-weight:700;font-size:15px;">{subtotal_label}</td>
+            </tr>
+            """)
+            for it in group:
+                parts.append(f"""
+                <tr>
+                    <td style="padding:6px 10px 6px 36px;border-bottom:1px solid #eee;border-left:3px solid {color};color:#444;"><a href="{it['notion_url']}" style="color:#444;text-decoration:none;">└ {it['title']}</a></td>
+                    <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;color:#666;">{_fmt_amount(it['amount'])}</td>
+                </tr>
+                """)
+        else:
+            it = group[0]
+            parts.append(f"""
+            <tr>
+                <td style="padding:8px 10px;border-bottom:1px solid #eee;"><a href="{it['notion_url']}" style="color:#1f1f1f;text-decoration:none;font-weight:600;">{it['title']}</a></td>
+                <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">{_fmt_amount(it['amount'])}</td>
+            </tr>
+            """)
+
+    rows = "".join(parts)
+    return f"""
+    <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:14px;">
+        <thead>
+            <tr style="background:{color};color:#fff;">
+                <th style="padding:10px;text-align:left;">Marka / Video</th>
+                <th style="padding:10px;text-align:right;">Tutar</th>
+            </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+    </table>
+    """
+
+
+def _build_email(pending):
+    grouped = {key: [] for key, *_ in BRACKETS}
+    for item in pending:
+        grouped[item["bracket"]].append(item)
+
+    counts = {k: len(v) for k, v in grouped.items()}
+
+    total_known_amount = sum(it["amount"] or 0 for it in pending)
+    has_unknown = any(it["amount"] is None for it in pending)
+    total_label = _fmt_amount(total_known_amount)
+    if has_unknown:
+        total_label += " (+ bilinmeyen)"
+
+    sections = ""
+    for key, label, color, _bg in BRACKETS:
+        items = grouped[key]
+        if not items:
+            continue
+        sections += f"""
+        <h3 style="margin:24px 0 4px 0;color:{color};">{label} — {len(items)} kayıt</h3>
+        {_render_table(items, color)}
+        """
+
+    subject = (
+        f"Tahsilat Özeti — {len(pending)} bekleyen "
+        f"({counts['yellow']} sarı / {counts['red']} kırmızı / {counts['black']} siyah)"
+    )
+
+    html = f"""
+    <html>
+    <body style="font-family:Arial,Helvetica,sans-serif;color:#222;line-height:1.5;">
+        <h2 style="margin-bottom:4px;">💰 Tahsilat Özeti</h2>
+        <p style="margin-top:0;color:#666;">{datetime.now().strftime('%Y-%m-%d')} — toplam <strong>{len(pending)}</strong> bekleyen işbirliği,
+        bilinen tutar toplamı: <strong>{total_label}</strong>.</p>
+        {sections}
+        <p style="margin-top:24px;color:#888;font-size:12px;">
+            Tahsilat alındığında Notion'da ilgili kaydın <strong>Check</strong> kutusunu işaretle — bir sonraki tarama dışı bırakır.
+        </p>
+    </body>
+    </html>
+    """
+    return subject, html
+
+
+def check_for_alerts():
+    print(f"[{datetime.now()}] Notion veritabanları kontrol ediliyor...")
+
+    # Idempotency guard: Railway restartPolicyMaxRetries=5 nedeniyle başarılı bir
+    # run "failed" sayılıp tekrar tetiklenebilir; aynı UTC günde 2. mail gönderilmesin.
+    if _already_sent_today():
+        print(f"⏭️  Bugün ({_sentinel_path()}) zaten mail gitmiş, atlanıyor.")
+        ops.info("Tahsilat özeti atlandı", "Sentinel mevcut — duplicate engellendi")
+        return
+
+    try:
+        videos = fetch_published_videos()
+    except Exception as e:
+        print(f"Notion video çekme hatası: {e}")
+        ops.error("Notion veri çekme hatası", exception=e)
+        return
+
+    if not videos:
+        print("İncelenecek 'Yayınlandı' kayıt yok.")
+        return
+
+    try:
+        amounts = fetch_payment_amounts()
+    except Exception as e:
+        print(f"Tahsilat Takip okuma hatası (devam ediliyor, tutarlar boş): {e}")
+        amounts = {}
+
+    print(f"Toplam {len(videos)} yayınlanmış video, {len(amounts)} tutar eşlemesi.")
+
+    pending = get_pending_notifications(videos, amounts=amounts)
+
+    if not pending:
+        print("Uyarı gerektiren tahsilat yok — mail atılmayacak.")
+        ops.success("Tahsilat özeti", "Bekleyen yok, mail atlandı")
+        return
+
+    print(f"{len(pending)} bekleyen kayıt → tek toplu mail hazırlanıyor.")
+
+    subject, html_body = _build_email(pending)
+    success = send_email_notification(subject, html_body)
+
+    if success:
+        # CRITICAL: sentinel'i mail başarısından hemen sonra, başka bir state mutasyonu öncesi yaz.
+        _mark_sent_today()
+        print(f"Toplu özet maili gönderildi: {len(pending)} kayıt.")
+        ops.success("Tahsilat özeti gönderildi", f"{len(pending)} bekleyen")
+    else:
+        print("Toplu özet maili gönderilemedi.")
+        ops.warning("Tahsilat özeti gönderilemedi", f"{len(pending)} bekleyen")
+
+
+def main():
+    print("Isbirligi_Tahsilat_Takip baslatildi. (Cron Modu)")
+    print(f"[{datetime.now()}] Zamanlanmis gorev basliyor...")
+    check_for_alerts()
+    print(f"[{datetime.now()}] Zamanlanmis gorev bitti.")
+    ops.wait_for_logs()
+    print("İşlem tamamlandı, çıkılıyor.")
+    import sys
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

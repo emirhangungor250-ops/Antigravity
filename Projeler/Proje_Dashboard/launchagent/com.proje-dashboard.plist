@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS LaunchAgent — Proje Dashboard'u saat başı çalıştırır.
+  Kurulumdan önce <PROJE_YOLU> yer tutucularını kendi mutlak yolunla değiştir.
+  Örnek: /Users/<kullanici>/Antigravity/Projeler/Proje_Dashboard
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.proje-dashboard</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string><PROJE_YOLU>/run.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string><PROJE_YOLU></string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string><PROJE_YOLU>/data/launchagent.log</string>
+
+    <key>StandardErrorPath</key>
+    <string><PROJE_YOLU>/data/launchagent.err</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>

@@ -1,0 +1,20 @@
+{
+  "_sablon_notu": "Buraya tesisinizin konumunu ve ulaşım bilgilerini yazın (havalimanı mesafesi, transfer, özel araç tarifi).",
+  "meta": {
+    "hotel": "<TESIS ADI>",
+    "version": "<surum/etiket>",
+    "lang": "tr",
+    "last_updated": "<YYYY-MM-DD>"
+  },
+  "data": {
+    "address": "<açık adres>",
+    "city": "<şehir>",
+    "nearest_airport": {"name": "<havalimanı adı>", "distance_km": 0},
+    "by_car": "<özel araç tarifi>",
+    "transfer": "<transfer hizmeti bilgisi>"
+  },
+  "faq": [
+    {"q": "<örnek ulaşım sorusu>", "a": "<örnek cevap>"}
+  ],
+  "routing_triggers": ["konum", "ulaşım", "havalimanı", "mesafe", "transfer", "adres"]
+}

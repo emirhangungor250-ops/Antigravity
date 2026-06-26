@@ -1,0 +1,92 @@
+{
+  "title_tr": "Kahve Falı Dedektifi",
+  "logline_tr": "Mahalle kafesinde fal bakan Meliha Abla'nın kehanetleri tek tek gerçekleşiyor. Genç barista Tarık bu işin sırrını çözmeye kararlı.",
+  "tone": ["komedi", "gizem", "sıcak mahalle hikayesi"],
+  "series_seed": 48217,
+  "characters": [
+    {
+      "id": "meliha_abla",
+      "name": "Meliha Abla",
+      "age": 58,
+      "role": "Kafenin kıdemli falcısı",
+      "personality": "Sıcak, muzip, bildiğini kolay kolay söylemez. Kehanetlerinden hiç şüphe duymaz.",
+      "speaking_style": "Yavaş ve tane tane konuşur. Cümle sonlarında anlamlı duraklar yapar.",
+      "visual_description": "A 58-year-old Turkish woman with a round warm face, plump build, gentle laugh lines, silver-streaked dark hair gathered in a loose bun, olive skin. WARDROBE LOCK: she always wears a deep plum knitted cardigan over a cream blouse, a long charcoal wool skirt, burgundy slippers, and an amber bead necklace. Soft rounded silhouette instantly readable on a phone screen, standing in a neutral pose, empty hands, plain light-grey studio background, full body visible head to toe",
+      "voice": {
+        "preset": "gacrux",
+        "voice_description": "Mature warm female voice, mid register, unhurried storyteller pace, a husky chuckle beneath her words, theatrical pauses before every prediction. Speaks natural conversational Turkish.",
+        "example_dialogue_tr": "Fincanın söylediğine değil evladım, söylemediğine bakacaksın."
+      }
+    },
+    {
+      "id": "tarik",
+      "name": "Tarık",
+      "age": 24,
+      "role": "Şüpheci genç barista",
+      "personality": "Meraklı ve inatçı. Her şeye mantıklı bir açıklama arar.",
+      "speaking_style": "Hızlı konuşur. Soru üstüne soru sorar.",
+      "visual_description": "A 24-year-old Turkish man with a lean build, sharp jawline, expressive thick eyebrows, short curly black hair shaved at the sides, light olive skin. WARDROBE LOCK: he always wears a mustard-yellow t-shirt under a forest-green barista apron, slim dark-indigo jeans, white low-top sneakers, and a black wristwatch. Tall narrow silhouette instantly readable on a phone screen, standing in a neutral pose, empty hands, plain light-grey studio background, full body visible head to toe",
+      "voice": {
+        "preset": "fenrir",
+        "voice_description": "Excitable young male voice, quick tempo, bright energy that cracks slightly when he is surprised, a skeptical edge on every question. Speaks natural conversational Turkish.",
+        "example_dialogue_tr": "Abla bak, bunun bilimsel bir açıklaması var, olmak zorunda!"
+      }
+    }
+  ],
+  "narrator": {
+    "enabled": false,
+    "preset": "",
+    "voice_description": "",
+    "example_dialogue_tr": ""
+  },
+  "environments": [
+    {
+      "id": "kafe_ici",
+      "name_tr": "Kafenin İçi",
+      "image_prompt": "Empty interior of a small cozy Turkish neighborhood coffee shop, vertical 9:16 framing, no people. A worn wooden counter with a brass coffee grinder, mismatched wooden chairs, shelves of porcelain cups, lace curtains on a street-facing window, a brass chime above the door. Warm amber late-afternoon window light, fixed late-afternoon time of day.",
+      "lighting_signature": "warm amber late-afternoon window light",
+      "time_of_day": "late afternoon"
+    },
+    {
+      "id": "sokak_kosesi",
+      "name_tr": "Kafenin Önündeki Sokak Köşesi",
+      "image_prompt": "Empty quiet cobblestone street corner in front of a small neighborhood coffee shop, vertical 9:16 framing, no people. Faded pastel building facades, a blank wooden cafe sign with no lettering, potted geraniums on windowsills. Soft golden late-afternoon side light, fixed late-afternoon time of day.",
+      "lighting_signature": "soft golden late-afternoon side light",
+      "time_of_day": "late afternoon"
+    }
+  ],
+  "props": [
+    {
+      "id": "fal_fincani",
+      "name_tr": "Fal Fincanı",
+      "image_prompt": "A single small white porcelain Turkish coffee cup on its matching saucer, dark coffee-ground patterns visible inside, isolated on a neutral light-grey surface, no hands, no text, soft even lighting, vertical 9:16 framing.",
+      "story_role": "Meliha Abla'nın kehanetlerinin kaynağı olan fincan."
+    }
+  ],
+  "art_style": {
+    "style_paragraph": "Live-action photorealistic footage grounded in a real Istanbul neighborhood cafe, shot like a warm character-driven streaming dramedy. Color palette of deep plum, amber, forest green and cream. Soft directional window light with gentle falloff and glowing edges. 35mm lens look, shallow depth of field with creamy background blur. Fine organic film grain and subtle texture on wood and porcelain. Overall mood: cozy, mischievous intrigue.",
+    "style_board_prompt": "Abstract mood frame of a cozy Turkish neighborhood coffee shop interior, no characters, no people: warm amber window light spilling over a worn wooden counter, deep plum and cream tones, porcelain cups out of focus in the background, fine film grain, vertical 9:16 framing.",
+    "negative_constraints": [
+      "no subtitles",
+      "no captions",
+      "no on-screen text",
+      "no watermarks",
+      "no logos",
+      "no brand names",
+      "no extra people in the background"
+    ]
+  },
+  "series_arc": {
+    "central_question_tr": "Meliha Abla'nın falları geleceği gerçekten görüyor mu, yoksa başka bir sır mı var?",
+    "episode_seeds_tr": [
+      "Meliha Abla'nın çan kehaneti aynen gerçekleşir, Tarık'ın fincanında ise söylemediği bir şey görür.",
+      "Tarık fincanları gizlice yıkayıp falı bozmaya çalışır ama kehanet yine tutar.",
+      "Meliha Abla bir günlüğüne fal bakmayı reddeder ve kafede her şey ters gitmeye başlar.",
+      "Tarık sokak köşesinde fincanı inceler ve telvenin her sabah aynı deseni çizdiğini fark eder.",
+      "Meliha Abla kendi fincanına bakmaktan korktuğunu ilk kez itiraf eder.",
+      "Tarık Meliha Abla'nın fincanına gizlice bakar ve gördüğü desen onu sarsar.",
+      "Meliha Abla Tarık'ın aylardır sakladığı falını sonunda yüksek sesle okur.",
+      "Fincanın sırrı çözülür, kehanetlerin kaynağı ortaya çıkar ve Tarık ilk falına kendisi bakar."
+    ]
+  }
+}

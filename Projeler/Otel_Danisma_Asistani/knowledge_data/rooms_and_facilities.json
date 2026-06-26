@@ -1,0 +1,28 @@
+{
+  "_sablon_notu": "Buraya kendi tesisinizin oda tipleri ve tesis olanaklarını yazın.",
+  "meta": {
+    "hotel": "<TESIS ADI>",
+    "version": "<surum/etiket>",
+    "lang": "tr",
+    "last_updated": "<YYYY-MM-DD>"
+  },
+  "data": {
+    "total_rooms": 0,
+    "bed_capacity": 0,
+    "building": "<bina/kat bilgisi>",
+    "room_types": [
+      {
+        "name": "<oda tipi adı>",
+        "capacity": "<kapasite, örn: 2 yetişkin + 1 çocuk>",
+        "size_m2": 0,
+        "features": ["<özellik 1>", "<özellik 2>"]
+      }
+    ],
+    "facilities": ["<olanak 1>", "<olanak 2>"],
+    "housekeeping": "<temizlik / housekeeping notu>"
+  },
+  "faq": [
+    {"q": "<örnek oda sorusu>", "a": "<örnek cevap>"}
+  ],
+  "routing_triggers": ["oda", "aile odası", "kapasite", "fitness"]
+}

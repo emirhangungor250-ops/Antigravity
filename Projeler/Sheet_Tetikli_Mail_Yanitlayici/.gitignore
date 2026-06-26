@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+*.log
+data/gmail-token.json
+data/sheets-token.json
+.DS_Store

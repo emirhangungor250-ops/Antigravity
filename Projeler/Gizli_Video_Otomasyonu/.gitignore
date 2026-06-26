@@ -1,0 +1,5 @@
+data/processed.json
+data/*.mp4
+refs/
+__pycache__/
+*.pyc

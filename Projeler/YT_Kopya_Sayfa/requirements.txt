@@ -1,0 +1,2 @@
+# Bağımlılık yok — sadece Python stdlib (http.server). Dosya RAILPACK'in Python'u
+# saptaması için var; içi boş kalabilir.

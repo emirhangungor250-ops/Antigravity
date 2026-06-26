@@ -1,0 +1,178 @@
+{
+  "episode_number": 1,
+  "title_tr": "Fincan Asla Yalan Söylemez",
+  "synopsis_tr": "Meliha Abla kapı çanının saat üçte kendi kendine çalacağını söyler. Tarık inanmaz ama kehanet aynen gerçekleşir. Meliha Abla sonra Tarık'ın fincanında gördüğünü söylemeyi reddeder.",
+  "hook_description": "Meliha Abla snaps a coffee cup upside down mid-sentence and freezes at the pattern inside.",
+  "cliffhanger_description": "Meliha Abla reads Tarik's own cup, her smile drains away, and she refuses to reveal what she saw.",
+  "music_mood": "playful mystery with a dark final turn",
+  "scenes": [
+    {
+      "scene_number": 1,
+      "duration_s": 4,
+      "environment_id": "kafe_ici",
+      "character_ids": ["meliha_abla"],
+      "prop_ids": ["fal_fincani"],
+      "action": "Meliha Abla snaps the coffee cup upside down onto its saucer mid-sentence, leans in sharply, and freezes as her eyes widen at the pattern forming inside the porcelain.",
+      "camera": "Close-up on the cup. Slow dolly-in; the camera glides forward while Meliha Abla stays seated.",
+      "lighting": "Warm amber late-afternoon window light rakes across the counter and glints on the porcelain.",
+      "dialogue": [
+        {
+          "speaker": "meliha_abla",
+          "line_tr": "Bu fincan bir şey saklıyor.",
+          "delivery_en": "hushed, ominous wonder"
+        }
+      ],
+      "sfx": "porcelain cup clinking sharply on the saucer",
+      "continuity_from_previous": "Series opening.",
+      "emotional_beat": "intrigue"
+    },
+    {
+      "scene_number": 2,
+      "duration_s": 8,
+      "environment_id": "kafe_ici",
+      "character_ids": ["meliha_abla", "tarik"],
+      "prop_ids": ["fal_fincani"],
+      "action": "Tarik strides over wiping his hands on his apron and plants both palms on the counter, while Meliha Abla taps the rim of the cup three times and delivers her prediction with a sly smile.",
+      "camera": "Medium two-shot. Static camera; the subjects move within the frame.",
+      "lighting": "Warm amber late-afternoon window light pools between the two figures at the counter.",
+      "dialogue": [
+        {
+          "speaker": "tarik",
+          "line_tr": "Yine mi fal Meliha Abla?",
+          "delivery_en": "teasing, skeptical"
+        },
+        {
+          "speaker": "meliha_abla",
+          "line_tr": "Saat tam üçte kapı çanı kendi kendine çalacak.",
+          "delivery_en": "calm, certain prophecy"
+        }
+      ],
+      "sfx": "fingernail tapping on porcelain, low cafe hum",
+      "continuity_from_previous": "Meliha Abla has just seen something startling inside the coffee cup.",
+      "emotional_beat": "playful challenge"
+    },
+    {
+      "scene_number": 3,
+      "duration_s": 10,
+      "environment_id": "kafe_ici",
+      "character_ids": ["tarik"],
+      "prop_ids": [],
+      "action": "Tarik scrubs the same spotless patch of counter over and over, then snatches glances at the wall clock as its minute hand crawls toward three, his scrubbing accelerating with every tick.",
+      "camera": "Medium shot. Slow pan from the wall clock to Tarik; the camera moves while he stays behind the counter.",
+      "lighting": "Warm amber late-afternoon window light stretches long shadows across the counter.",
+      "dialogue": [
+        {
+          "speaker": "tarik",
+          "line_tr": "Çalmayacak. Kesinlikle çalmayacak.",
+          "delivery_en": "muttering, nervous denial"
+        }
+      ],
+      "sfx": "cloth squeaking on wood, wall clock ticking",
+      "continuity_from_previous": "Meliha Abla predicted the door chime will ring by itself at three o'clock.",
+      "emotional_beat": "mounting dread"
+    },
+    {
+      "scene_number": 4,
+      "duration_s": 10,
+      "environment_id": "kafe_ici",
+      "character_ids": ["meliha_abla", "tarik"],
+      "prop_ids": [],
+      "action": "The door chime jangles wildly with no one at the door; Tarik whirls and drops his cloth, while Meliha Abla sips her coffee without even looking up.",
+      "camera": "Wide shot. Static camera; the subjects move within the frame.",
+      "lighting": "Warm amber late-afternoon window light catches the swinging chime above the door.",
+      "dialogue": [
+        {
+          "speaker": "tarik",
+          "line_tr": "Bu rüzgar. Değil mi? Söyle, rüzgar!",
+          "delivery_en": "panicked, pleading"
+        },
+        {
+          "speaker": "meliha_abla",
+          "line_tr": "Fincan ne derse o olur evlat.",
+          "delivery_en": "serene, knowing"
+        }
+      ],
+      "sfx": "brass door chime jangling, cloth thudding on the floor",
+      "continuity_from_previous": "The wall clock has just reached three o'clock exactly.",
+      "emotional_beat": "shock"
+    },
+    {
+      "scene_number": 5,
+      "duration_s": 10,
+      "environment_id": "sokak_kosesi",
+      "character_ids": ["tarik"],
+      "prop_ids": [],
+      "action": "Tarik bursts out of the cafe door onto the cobblestones, spins in a full circle scanning the still air, then holds up a licked finger and finds not a single breath of wind.",
+      "camera": "Full shot. Handheld camera; it sways slightly while Tarik spins on the spot.",
+      "lighting": "Soft golden late-afternoon side light washes the empty cobblestone corner.",
+      "dialogue": [
+        {
+          "speaker": "tarik",
+          "line_tr": "Rüzgar bile yok. Bu nasıl oluyor?",
+          "delivery_en": "baffled, breathless"
+        }
+      ],
+      "sfx": "distant street ambience, a single sparrow chirping",
+      "continuity_from_previous": "The door chime rang by itself exactly as predicted.",
+      "emotional_beat": "bewilderment"
+    },
+    {
+      "scene_number": 6,
+      "duration_s": 10,
+      "environment_id": "kafe_ici",
+      "character_ids": ["meliha_abla", "tarik"],
+      "prop_ids": ["fal_fincani"],
+      "action": "Meliha Abla flips Tarik's own cup, peers inside, and her smile drains away; she sets the cup down with deliberate slowness and slides it out of his reach.",
+      "camera": "Medium close-up. Slow dolly-in toward Meliha Abla's face; the subjects stay seated.",
+      "lighting": "Warm amber late-afternoon window light dims as it grazes the overturned cup.",
+      "dialogue": [
+        {
+          "speaker": "tarik",
+          "line_tr": "Benimkinde ne görüyorsun?",
+          "delivery_en": "anxious, urgent"
+        },
+        {
+          "speaker": "meliha_abla",
+          "line_tr": "Bunu sana söyleyemem. Henüz değil.",
+          "delivery_en": "grave, protective"
+        }
+      ],
+      "sfx": "porcelain scraping slowly across the wooden counter, faint clock ticking",
+      "continuity_from_previous": "Tarik found no wind outside that could explain the chime.",
+      "emotional_beat": "ominous cliffhanger"
+    }
+  ],
+  "memory_update": {
+    "synopsis_short_tr": "Meliha Abla kafede fincan kapatır ve kapı çanının saat üçte kendi kendine çalacağını söyler. Tarık buna inanmaz ve tezgahı silerek saati bekler. Saat üçte çan gerçekten kendiliğinden çalar. Tarık dışarı çıkar ama rüzgar bile yoktur. Meliha Abla sonra Tarık'ın fincanına bakar, yüzü değişir ve gördüğünü söylemeyi reddeder.",
+    "cliffhanger_tr": "Meliha Abla Tarık'ın fincanında gördüğü şeyi söylemeyi reddediyor.",
+    "threads_opened": [
+      "Tarık'ın fincanında görünen gizemli desen",
+      "Çan kehanetinin gerçek açıklaması"
+    ],
+    "threads_resolved": [],
+    "character_developments": [
+      "Tarık ilk kez bir kehanetin gerçekleştiğine bizzat tanık oldu",
+      "Meliha Abla ilk kez bir falı okumayı reddetti"
+    ],
+    "new_canon_facts": [
+      "Kapı çanı saat üçte kimse yokken kendiliğinden çaldı",
+      "Meliha Abla Tarık'ın falında bir şey gördü ve sakladı"
+    ]
+  },
+  "youtube": {
+    "title_tr": "Fincan Asla Yalan Söylemez ☕ Kahve Falı Dedektifi 1. Bölüm",
+    "description_tr": "Meliha Abla'nın kehaneti saat üçte aynen gerçekleşti. Tarık hala mantıklı bir açıklama arıyor. Sizce Meliha Abla fincanda ne gördü?",
+    "tags": [
+      "kahve falı",
+      "mini dizi",
+      "shorts",
+      "komedi",
+      "gizem",
+      "türkçe dizi",
+      "fal",
+      "yapay zeka dizi",
+      "kahve",
+      "kehanet"
+    ]
+  }
+}

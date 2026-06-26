@@ -1,0 +1,29 @@
+{
+  "_sablon_notu": "Toplu taşıma (otobüs/hat) ile ulaşım. Tesisinize gelen hat varsa doldurun; yoksa bu dosyayı sade tutabilir veya 'routing_triggers' dışında bırakabilirsiniz.",
+  "schema": "transport-lite-v1",
+  "routes": {
+    "<hat-1>": { "name": "<kalkış> → <varış>" },
+    "<hat-2>": { "name": "<varış> → <kalkış>" }
+  },
+  "service": {
+    "<hat-1>": { "weekday": true,  "saturday": true,  "sunday": true },
+    "<hat-2>": { "weekday": false, "saturday": true,  "sunday": true }
+  },
+  "answers": {
+    "templates": {
+      "var_true":  "Evet, {route_name} bugün çalışıyor.",
+      "var_false": "Hayır, bugün {route_name} için sefer yok.",
+      "days":      "{route_name} hattı şu günler çalışır: {days}.",
+      "howto":     "Tesise {route_name} hattıyla ulaşabilirsiniz; alternatif: taksi veya özel araç."
+    },
+    "disclaimer": "Saatler değişebilir; ilgili toplu taşıma uygulamasından teyit edin."
+  },
+  "aliases": {
+    "direction": {
+      "<şehirden> tesise": "<hat-2>",
+      "tesisten <şehre>": "<hat-1>"
+    },
+    "days_tr": { "hafta içi": "weekday", "cumartesi": "saturday", "pazar": "sunday", "bugün": "today", "yarın": "tomorrow" }
+  },
+  "tz": "Europe/Istanbul"
+}

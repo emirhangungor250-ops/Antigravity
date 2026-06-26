@@ -1,0 +1,26 @@
+{
+  "name": "whatsapp-asistan",
+  "version": "1.0.0",
+  "description": "ManyChat tabanli WhatsApp RAG asistani",
+  "main": "server.js",
+  "scripts": {
+    "start": "npm run seed && node server.js",
+    "dev": "node server.js",
+    "seed": "node scripts/seed_knowledge.js",
+    "kb:list": "node scripts/kb_manager.js list",
+    "kb:search": "node scripts/kb_manager.js search",
+    "kb:validate": "node scripts/kb_manager.js validate",
+    "kb:stats": "node scripts/kb_manager.js stats",
+    "kb:diff": "node scripts/kb_manager.js diff",
+    "test:flows": "node scripts/test_conversation.js",
+    "test:burst": "node scripts/test_burst_coalesce.js"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "openai": "4.85.4",
+    "@supabase/supabase-js": "2.49.4",
+    "node-fetch": "2.7.0",
+    "dotenv": "16.4.7",
+    "form-data": "4.0.1"
+  }
+}

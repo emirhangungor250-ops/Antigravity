@@ -1,0 +1,36 @@
+# eCom Reklam Otomasyonu — Kilitli Bağımlılıklar
+# Projenize eklenecek her yeni paketin bir '==' numarası olmak ZORUNDADIR. (Strict Pinning)
+
+# Telegram Bot Framework
+python-telegram-bot==21.10
+
+# OpenAI (GPT-4.1 Mini — Chat + Vision)
+openai==1.68.2
+
+# HTTP İstekleri (Kie AI, ElevenLabs, ImgBB, Replicate, Perplexity)
+requests==2.32.3
+urllib3==2.2.1
+
+# Notion SDK
+notion-client==2.2.1
+
+# Replicate (Video + Ses Birleştirme)
+replicate==1.0.4
+
+# MP3 süre ölçümü — saf Python (ffmpeg gerekmez)
+mutagen==1.47.0
+
+# Türkçe sayı/yazı dönüşümü — TTS sayı normalizasyonu
+num2words==0.5.14
+
+# Web Scraping (Ürün Fotoğrafı Çekme)
+
+# Canlı Dashboard (DASHBOARD_ENABLED=1 ile açılır — opsiyonel demo modu)
+# WHY: uvicorn[standard] zaten httptools+websockets vb. ekstraları çekiyor;
+# canli-demo sync.py'nin eklediği unpinned `uvicorn>=0.27` kaldırıldı —
+# strict pinning kuralı + duplicate satır temizliği.
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+
+# QR kod (DASHBOARD_PUBLIC_URL set edilince /qr.svg endpoint'i için)
+qrcode==7.4.2

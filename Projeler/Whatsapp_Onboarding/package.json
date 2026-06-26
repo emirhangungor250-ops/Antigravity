@@ -1,0 +1,23 @@
+{
+  "name": "whatsapp-onboarding",
+  "version": "1.0.0",
+  "description": "WhatsApp 7-gunluk onboarding drip sistemi — ManyChat + Notion CRM",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "migrate": "node manual_onboard.js",
+    "dev": "node --watch server.js",
+    "validate": "node -e \"require('./server')\""
+  },
+  "dependencies": {
+    "@notionhq/client": "2.2.15",
+    "dotenv": "16.4.7",
+    "express": "4.22.1",
+    "libphonenumber-js": "1.12.8",
+    "moment-timezone": "0.5.43",
+    "node-cron": "3.0.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

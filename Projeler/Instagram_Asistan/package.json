@@ -1,0 +1,25 @@
+{
+  "name": "instagram-asistan",
+  "version": "0.1.0",
+  "description": "<KULLANICI_ADI> Instagram DM Asistanı — <TOPLULUK_ADI> danışmanlık + video kaynak + B2B + genel AI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed:kb": "node scripts/seed_kb_factory.js",
+    "sync:videos": "node scripts/sync_notion_videos.js",
+    "sync:videos:full": "node scripts/sync_notion_videos.js --full",
+    "test:intent": "node scripts/test_intent_router.js",
+    "test:rate": "node scripts/test_rate_limit.js",
+    "test:burst": "node scripts/test_burst_coalesce.js",
+    "test:sim": "node scripts/simulation_scenarios.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.32.1",
+    "@supabase/supabase-js": "2.49.4",
+    "dotenv": "16.4.7",
+    "express": "4.21.2",
+    "node-fetch": "2.7.0",
+    "openai": "4.85.4"
+  }
+}

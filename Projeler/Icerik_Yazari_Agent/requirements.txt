@@ -1,0 +1,4 @@
+# İçerik Yazarı Agent — Bağımlılıklar
+# Araçlar yalnızca standart Python kütüphanelerini (urllib, json, ssl vb.) kullanır.
+# Harici zorunlu bağımlılık yoktur.
+# Opsiyonel: SSL doğrulaması için `certifi` kuruluysa kullanılır.

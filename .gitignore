@@ -1,0 +1,188 @@
+# ==========================================
+# 🔐 HASSAS DOSYALAR — ASLA COMMIT ETMEYİN
+# ==========================================
+
+# Environment ve API Key dosyaları
+.env
+.env.*
+!.env.example
+credentials.env
+config.env
+*.env
+
+# OAuth Token dosyaları
+token.json
+credentials.json
+*credentials.json
+*.pickle
+*.pickle.DEPRECATED
+*.DEPRECATED
+
+# API anahtarları içeren knowledge dosyası
+# NOT: Bu dosya lokal kalmalı, GitHub'a gitmemeli
+# Eğer yapı paylaşılacaksa templates/api-anahtarlari-sablon.md kullanılmalı
+_knowledge/api-anahtarlari.md
+
+# Merkezi credential deposu — TÜM tokenlar burada
+_knowledge/credentials/master.env
+_knowledge/credentials/oauth/
+_knowledge/credentials/google-service-account.json
+_knowledge/credentials/*.json
+
+# ==========================================
+# SİSTEM VE CACHE DOSYALARI
+# ==========================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.cursor/
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# ==========================================
+# PROJE-SPESİFİK
+# ==========================================
+
+# Gemini brain (kişisel konuşma geçmişi ve geçici dosyalar)
+.gemini/
+.gemini_scratch/
+
+# Local binaries (Railway CLI vb.)
+/bin/
+
+# Output dosyaları (büyük medya dosyaları)
+*.mp4
+*.mov
+*.avi
+*.wav
+*.mp3
+
+# Log dosyaları
+*.log
+.railway-token
+.railway/
+railway-token.txt
+
+
+
+# Temp ve output klasörleri
+**/temp/
+**/output/*.mp4
+
+# Agent kampanya data dosyaları (lokal kalmalı)
+_agents/*/data/*.csv
+_agents/*/data/*.json
+
+# Proje-spesifik env dosyaları
+Projeler/**/.env
+Projeler/**/.env.*
+!Projeler/**/.env.example
+Paylasima_Hazir_Projeler/**/.env*
+!Paylasima_Hazir_Projeler/**/.env.example
+
+# Büyük data/analiz dosyaları — repo'yu şişirmesin
+**/history_analysis.json
+**/optimized_prompts_log.json
+**/creator_outreach_tracking.csv
+
+# Deprecated token dosyaları
+*.pickle.DEPRECATED
+*.DEPRECATED
+
+# Fatura Oluşturucu — üretilen PDF'ler ve fontlar
+_skills/fatura-olusturucu/uretilen-faturalar/
+_skills/fatura-olusturucu/*.ttf
+# Gmail thread dump'ları — PII içerir, lokal kalır
+_skills/fatura-olusturucu/result.json
+_skills/fatura-olusturucu/fatura_rehberi.json
+# Eski fatura örnekleri — vendor + müşteri PII içerir, lokal kalır
+_skills/fatura-olusturucu/fatura-ornekler/
+
+# Lead Pipeline state files
+Projeler/Lead_Pipeline/.state_*.json
+
+# Lead Notifier state files
+Projeler/Lead_Notifier_Bot/.last_row_counts.json
+
+# ==========================================
+# 🚫 GEÇİCİ PUSH/DEPLOY/TEST SCRIPTLERİ
+# ==========================================
+# Token içerebilecek geçici helper dosyaları
+_push_helper.py
+**/push_to_github.*
+**/push_to_monorepo.*
+**/push_bypass_dns.*
+**/deploy_railway.py
+**/check_notion.js
+**/test_apify_temp.py
+**/check_railway.py
+test_railway.py
+
+# Geçici venv klasörleri
+**/tmp_venv/
+
+# Scratch/test dosyaları
+**/scratch_*.py
+**/scratch_*.js
+
+# Ad-hoc debug script'leri (lokal kalmalı, repo'ya girmesin)
+**/scratch.js
+**/test_notion.py
+**/test_img.png
+
+# Scratch/test çalışmaları (debug dosyaları, push helper'lar)
+# ⚠️ push helper script'leri token içerebilir — KESİNLİKLE commit'lenmemeli
+**/.npmrc
+
+# Netlify local state
+**/.netlify/
+
+# Araştırma/output dosyaları
+**/output.json
+**/research_*.py
+**/mcp_files.json
+**/samples.json
+**/schema.json
+
+# Standalone repo — has its own GitHub repo + Railway service
+Projeler/Twitter_Onay_Api/
+
+# Otonom routine'lerin runtime lock dosyası (her routine kendi kaydını yazar/siler)
+_knowledge/agent_lock.json

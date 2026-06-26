@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+.DS_Store
+*.last_simulation_stdout.txt
+simulation_report.md

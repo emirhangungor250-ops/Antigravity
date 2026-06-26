@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+
+# OAuth gizli dosyalari — ASLA commit etme
+client_secret.json
+drive-full-token.json
+*token*.json

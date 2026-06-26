@@ -1,0 +1,27 @@
+{
+  "_sablon_notu": "Buraya restoran, bar, pansiyon tipi ve canlı müzik / eğlence programı bilgilerinizi yazın. Özel gün programları (yılbaşı vb.) varsa events altına ekleyin.",
+  "meta": {
+    "hotel": "<TESIS ADI>",
+    "version": "<surum/etiket>",
+    "lang": "tr",
+    "last_updated": "<YYYY-MM-DD>"
+  },
+  "data": {
+    "board_type": "<pansiyon tipi, örn: Yarım Pansiyon>",
+    "restaurants": [
+      {"name": "<restoran adı>", "hours": "<açılış-kapanış>", "notes": "<not>"}
+    ],
+    "bars": ["<bar 1>"],
+    "live_music": {
+      "available": false,
+      "schedule": "<canlı müzik programı>"
+    },
+    "events": [
+      {"name": "<özel gün / etkinlik adı>", "date": "<YYYY-MM-DD>", "details": "<detay>"}
+    ]
+  },
+  "faq": [
+    {"q": "<örnek yeme-içme sorusu>", "a": "<örnek cevap>"}
+  ],
+  "routing_triggers": ["restoran", "bar", "canlı müzik", "yemek saatleri", "pansiyon", "program"]
+}

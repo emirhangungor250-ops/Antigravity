@@ -1,0 +1,15 @@
+_arsiv/
+.venv/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.DS_Store
+**/node_modules/
+**/.env
+_skills/
+_agents/
+_knowledge/
+Paylasilan_Projeler/
+# Her servis Railway'de kendi rootDirectory'sinden deploy edilir.
+# Diğer tüm proje klasörlerini build context'inden hariç tut.
+Projeler/

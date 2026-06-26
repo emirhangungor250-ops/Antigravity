@@ -1,0 +1,13 @@
+# Seri runtime state — kod değil, lokal koşu çıktısı (maliyet.json kredi bakiyesi içerir)
+seriler/
+
+# Üretilen medya — repo'ya girmez (büyük dosyalar)
+seriler/**/refs/
+seriler/**/sahneler/
+seriler/**/final/
+outputs/
+
+# Lokal ortam
+.venv/
+.env
+__pycache__/

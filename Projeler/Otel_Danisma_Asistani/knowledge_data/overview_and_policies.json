@@ -1,0 +1,41 @@
+{
+  "_sablon_notu": "Buraya kendi tesisinizin genel bilgilerini ve politikalarını yazın. Aşağıdaki alanları örnek olarak doldurun; gereksizleri silin, yeni alan ekleyebilirsiniz.",
+  "meta": {
+    "hotel": "<TESIS ADI>",
+    "version": "<surum/etiket>",
+    "lang": "tr",
+    "last_updated": "<YYYY-MM-DD>"
+  },
+  "policy_core": {
+    "_not": "Tesise özel zorunlu kural/şart varsa burada belirtin (örn. belge zorunluluğu). Yoksa bu bölümü silin.",
+    "answer_templates": {
+      "ornek_politika": "<Tesise özgü bir politika için hazır cevap metni>"
+    }
+  },
+  "data": {
+    "category_stars": 0,
+    "concept": "<konsept, örn: Yarım Pansiyon>",
+    "opening_year": 0,
+    "season": "<sezon, örn: 12 ay açık>",
+    "address": "<açık adres>",
+    "city": "<şehir>",
+    "phone": "<telefon>",
+    "email": "<eposta>",
+    "website": "<web sitesi>",
+    "payment_cards": ["<kart 1>", "<kart 2>"],
+    "installment_options": {
+      "note": "<taksit / banka bilgisi>"
+    },
+    "policies": {
+      "smoking": "<sigara politikası>",
+      "pets": "<evcil hayvan politikası>",
+      "cancellation": "<iptal / değişiklik politikası>"
+    },
+    "check_in_time": "<giriş saati>",
+    "check_out_time": "<çıkış saati>"
+  },
+  "faq": [
+    {"q": "<örnek soru>", "a": "<örnek cevap>"}
+  ],
+  "routing_triggers": ["genel bilgi", "check-in", "politika", "iletişim"]
+}

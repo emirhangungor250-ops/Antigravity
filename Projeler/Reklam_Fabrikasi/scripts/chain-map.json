@@ -1,0 +1,332 @@
+{
+  "version": "1.7.0",
+  "skills": {
+    "reklam-fabrikasi-voc": {
+      "description_summary": "Müşteri sesi araştırması. İncelemeleri, forumları ve sosyal medyayı tarayıp birebir müşteri dilini çıkarır.",
+      "inputs_from": [
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-static",
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-ugc-prompt",
+        "reklam-fabrikasi-copy",
+        "reklam-fabrikasi-multiplier",
+        "reklam-fabrikasi-rebuild",
+        "reklam-fabrikasi-ugc-scraper",
+        "reklam-fabrikasi-landing-page"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-spy"
+      ],
+      "output_folder": "01_VOC_Research",
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": []
+    },
+    "reklam-fabrikasi-brand-dna": {
+      "description_summary": "Playwright renk örneklemesi, ses analizi ve görsel kimlik yakalamayla canlı marka DNA'sı çıkarımı.",
+      "inputs_from": [
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-static",
+        "reklam-fabrikasi-ugc-prompt",
+        "reklam-fabrikasi-copy",
+        "reklam-fabrikasi-multiplier",
+        "reklam-fabrikasi-rebuild",
+        "reklam-fabrikasi-landing-page",
+        "reklam-fabrikasi-character",
+        "reklam-fabrikasi-product-shot"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-spy"
+      ],
+      "output_folder": "02_Brand_DNA",
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": [
+        "playwright"
+      ]
+    },
+    "reklam-fabrikasi-spy": {
+      "description_summary": "Aktif, yüksek sinyalli statik reklamlar için Meta Ad Library'yi kazır. Stratejik çözümlemelerle bir swipe dosyası oluşturur.",
+      "inputs_from": [
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-rebuild"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-brand-dna"
+      ],
+      "output_folder": "03_Ad_Spy",
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": [
+        "apify"
+      ]
+    },
+    "reklam-fabrikasi-ugc-scraper": {
+      "description_summary": "Apify ile viral UGC senaryoları için TikTok'u kazır. UGC yazarlarını eğitmek için bir swipe dosyası üretir.",
+      "inputs_from": [
+        "reklam-fabrikasi-voc",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "user"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-spy"
+      ],
+      "output_folder": "05_UGC/scraper",
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": [
+        "apify"
+      ]
+    },
+    "reklam-fabrikasi-static": {
+      "description_summary": "Kanıta dayalı statik reklam konsept sistemi. Markanın son 20 canlı Meta reklamını Apify ile kazır, Marka DNA'sı ve VOC verisini işler, Kreatif Araştırma ve Strateji Motoru'nu web aramasıyla çalıştırır, onayla, reddet veya düzenle için sohbette 6 ila 10 konsepti düz metin olarak sunar, sonra onaylanan her konsept için 5 sabit görsel ailesi boyunca tam olarak 5 GPT Image 2 render prompt'u yazar. GPT Image 2'ye sabitlenmiştir (model seçici yok). Yol A (manuel yapıştırma), Yol B (Higgsfield CLI), Yol C (fal.ai doğrudan, fal-ai-prerun-check ile korunur, openai/gpt-image-2/edit), Yol D (Playwright chatgpt.com'u sürer) içerir.",
+      "inputs_from": [
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-product-shot",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-copy",
+        "user",
+        "reklam-fabrikasi-landing-page"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-ugc-prompt"
+      ],
+      "output_folder": "04_Static_Ads",
+      "is_generation": true,
+      "four_paths_complete": true,
+      "requires_mcp": [
+        "apify",
+        "higgsfield",
+        "fal-ai",
+        "playwright"
+      ],
+      "path_c_guard": "fal-ai-prerun-check"
+    },
+    "reklam-fabrikasi-ugc-prompt": {
+      "description_summary": "Bir UGC senaryosundan 6 Seedance 2.0 video prompt'u. Projede kayıtlı karakterler varsa, beceri yüz tutarlılığı için bir karakteri 6 varyantın tamamına kilitler. Yol A (Higgsfield'da manuel yapıştırma), Yol B (Higgsfield MCP), Yol C (fal.ai doğrudan, fal-ai-prerun-check ile korunur), Yol D (Playwright Higgsfield web arayüzünü sürer, eski Yol B) içerir.",
+      "inputs_from": [
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-character",
+        "reklam-fabrikasi-product-shot",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-copy",
+        "user"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-static"
+      ],
+      "output_folder": "05_UGC/prompts",
+      "is_generation": true,
+      "four_paths_complete": true,
+      "requires_mcp": [
+        "higgsfield",
+        "fal-ai",
+        "playwright"
+      ],
+      "path_c_guard": "fal-ai-prerun-check"
+    },
+    "reklam-fabrikasi-multiplier": {
+      "description_summary": "Kazanan bir statik reklamın 5 ila 8 Andromeda uyumlu varyasyonu. Model seçici: GPT Image 2 (önerilen, yüksek kalite, 4K, fal.ai'de openai/gpt-image-2/edit ile) ya da daha ucuz alternatif olarak Nano Banana 2. Yol A (manuel yapıştırma), Yol B (Higgsfield MCP, her iki model), Yol C (fal.ai doğrudan, fal-ai-prerun-check ile korunur, her iki model), Yol D (Playwright GPT Image 2 için chatgpt.com'u veya Nano Banana 2 için aistudio.google.com'u sürer) içerir.",
+      "inputs_from": [
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-product-shot",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-copy",
+        "user",
+        "reklam-fabrikasi-landing-page"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-rebuild"
+      ],
+      "output_folder": "07_Multiplied_Ads",
+      "is_generation": true,
+      "four_paths_complete": true,
+      "requires_mcp": [
+        "higgsfield",
+        "fal-ai",
+        "playwright"
+      ],
+      "path_c_guard": "fal-ai-prerun-check"
+    },
+    "reklam-fabrikasi-rebuild": {
+      "description_summary": "Bir rakibin kazanan statik reklamını referans görsel prompt'u olarak yeniden inşa et. İsteğe bağlı 5 persona varyasyonu. Model seçici: GPT Image 2 (önerilen, yüksek kalite, 4K, fal.ai'de openai/gpt-image-2/edit ile) ya da daha ucuz alternatif olarak Nano Banana 2. Yol A (manuel yapıştırma), Yol B (Higgsfield MCP, her iki model), Yol C (fal.ai doğrudan, fal-ai-prerun-check ile korunur, her iki model), Yol D (Playwright GPT Image 2 için chatgpt.com'u veya Nano Banana 2 için aistudio.google.com'u sürer) içerir.",
+      "inputs_from": [
+        "reklam-fabrikasi-spy",
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-product-shot",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-copy",
+        "user",
+        "reklam-fabrikasi-landing-page"
+      ],
+      "parallel_with": [
+        "reklam-fabrikasi-multiplier"
+      ],
+      "output_folder": "08_Rebuilt_Competitor_Ads",
+      "is_generation": true,
+      "four_paths_complete": true,
+      "requires_mcp": [
+        "higgsfield",
+        "fal-ai",
+        "playwright"
+      ],
+      "path_c_guard": "fal-ai-prerun-check"
+    },
+    "reklam-fabrikasi-copy": {
+      "description_summary": "Meta reklam başlıkları, açıklamaları, ana metni. brand-dna + voc + kreatiften spesifikasyona uygun metin.",
+      "inputs_from": [
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-static",
+        "reklam-fabrikasi-ugc-prompt",
+        "reklam-fabrikasi-multiplier",
+        "reklam-fabrikasi-rebuild",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-meta-handoff",
+        "user",
+        "reklam-fabrikasi-landing-page"
+      ],
+      "parallel_with": [],
+      "output_folder": "06_Ad_Copy",
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": []
+    },
+    "reklam-fabrikasi-meta-handoff": {
+      "description_summary": "Kullanıcının claude.ai web uygulamasına yapıştırdığı, Meta'nın mcp.facebook.com/ads adresindeki resmi Ads MCP'sinin çalıştığı zengin bağlamlı bir aktarım prompt'u hazırlar. İki mod: mevcut kampanyaları analiz et veya yeni kampanyalar oluştur. Aktarım prompt'unu diske kaydeder ve kopyalamak için yazdırır. Meta'nın MCP'sini asla doğrudan çağırmaz.",
+      "inputs_from": [
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-copy",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "user"
+      ],
+      "parallel_with": [],
+      "output_folder": "09_Meta_Handoff",
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": []
+    },
+    "reklam-fabrikasi-landing-page": {
+      "description_summary": "Kazanan bir Meta reklamını markalı, tek dosyalık HTML açılış sayfasına dönüştür. Marka DNA'sı + VOC + reklam kreatifini okur, DTC ve lead gen arasında otomatik rota seçer, reklam başlığı ile H1 arasında mesaj uyumunu zorlar ve yazmadan önce 34 yapay zeka klişesine karşı öz denetim yapar. Çıktı, dağıtıma hazır, tek başına çalışan tek bir HTML dosyasıdır.",
+      "inputs_from": [
+        "reklam-fabrikasi-voc",
+        "reklam-fabrikasi-brand-dna",
+        "reklam-fabrikasi-static",
+        "reklam-fabrikasi-multiplier",
+        "reklam-fabrikasi-rebuild",
+        "reklam-fabrikasi-copy",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "user"
+      ],
+      "parallel_with": [],
+      "output_folder": "10_Landing_Pages",
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": []
+    },
+    "reklam-fabrikasi-character": {
+      "description_summary": "Çalıştırma başına 1 ila 10 marka karakteri üret. Her karakter, 3:4 oranında eşleşen bir vesikalık artı tam boy kadro görseli olarak çıkar, karakter başına 11_Characters/<name>/ altına kaydedilir. Yüz referansı olarak product-shot ve ugc-prompt'u besler. Model seçici: GPT Image 2 (önerilen, yüksek kalite, 2400 x 3200 image_size, fal.ai'nin GPT Image 2 8.3 megapiksel sınırı altındaki en büyük 3:4 boyutu) ya da daha ucuz alternatif olarak 3:4 2K'da Nano Banana 2. Yol A (manuel yapıştırma), Yol B (Higgsfield MCP, her iki model), Yol C (fal.ai doğrudan, fal-ai-prerun-check ile korunur, her iki model), Yol D (Playwright GPT Image 2 için chatgpt.com'u veya Nano Banana 2 için aistudio.google.com'u sürer) içerir.",
+      "inputs_from": [
+        "reklam-fabrikasi-brand-dna",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-product-shot",
+        "reklam-fabrikasi-ugc-prompt",
+        "user"
+      ],
+      "parallel_with": [],
+      "output_folder": "11_Characters",
+      "is_generation": true,
+      "four_paths_complete": true,
+      "requires_mcp": [
+        "higgsfield",
+        "fal-ai",
+        "playwright"
+      ],
+      "path_c_guard": "fal-ai-prerun-check"
+    },
+    "reklam-fabrikasi-product-shot": {
+      "description_summary": "Üç modda ürün çekimi üret: stüdyo (düz arka plan), elde tutulan (ürünü tutan kişi) veya giyilen/kullanılan (ürünü giyen veya kullanan kişi). Tek bir ana çekim, sonra açı / karakter / arka plan / etkileşim değişimleri için v1 sonrası döngü. Model seçici: GPT Image 2 (önerilen, yüksek kalite, en-boy oranına göre 4K eşdeğeri image_size: 16:9 için 3840 x 2160, 9:16 için 2160 x 3840, 1:1 için 2880 x 2880, 4:5 için 2560 x 3200) ya da daha ucuz alternatif olarak 2K'da Nano Banana 2. Yol A (manuel yapıştırma), Yol B (Higgsfield MCP, her iki model), Yol C (fal.ai doğrudan, fal-ai-prerun-check ile korunur, her iki model, openai/gpt-image-2/edit veya fal-ai/nano-banana-2/edit), Yol D (Playwright GPT Image 2 için chatgpt.com'u veya Nano Banana 2 için aistudio.google.com'u sürer) içerir.",
+      "inputs_from": [
+        "reklam-fabrikasi-character",
+        "reklam-fabrikasi-brand-dna",
+        "user-upload"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-static",
+        "reklam-fabrikasi-multiplier",
+        "reklam-fabrikasi-rebuild",
+        "reklam-fabrikasi-ugc-prompt",
+        "user"
+      ],
+      "parallel_with": [],
+      "output_folder": "_assets/product-shots",
+      "is_generation": true,
+      "four_paths_complete": true,
+      "requires_mcp": [
+        "higgsfield",
+        "fal-ai",
+        "playwright"
+      ],
+      "path_c_guard": "fal-ai-prerun-check"
+    },
+    "fal-ai-prerun-check": {
+      "description_summary": "Koruma becerisi. Herhangi bir Yol C üretimi çalışmadan önce pluginConfigs içindeki fal_api_key'i ve fal-ai MCP bağlantısını doğrular.",
+      "inputs_from": [
+        "reklam-fabrikasi-static",
+        "reklam-fabrikasi-ugc-prompt",
+        "reklam-fabrikasi-multiplier",
+        "reklam-fabrikasi-rebuild",
+        "reklam-fabrikasi-character",
+        "reklam-fabrikasi-product-shot"
+      ],
+      "outputs_to": [
+        "reklam-fabrikasi-static",
+        "reklam-fabrikasi-ugc-prompt",
+        "reklam-fabrikasi-multiplier",
+        "reklam-fabrikasi-rebuild",
+        "reklam-fabrikasi-character",
+        "reklam-fabrikasi-product-shot"
+      ],
+      "parallel_with": [],
+      "output_folder": null,
+      "is_generation": false,
+      "three_paths_complete": false,
+      "requires_mcp": [
+        "fal-ai"
+      ],
+      "is_guard": true
+    }
+  }
+}

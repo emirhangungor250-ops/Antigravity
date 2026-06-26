@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Canlı Demo</title>
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-dot"></div>
+      <div class="brand-text">
+        <div class="brand-title" id="brand-title">Canlı Demo</div>
+        <div class="brand-sub" id="brand-sub">Pipeline çalışmaya başladığında durum buradan izlenir</div>
+      </div>
+    </div>
+
+    <div class="product-info" id="product-info">
+      <div class="product-thumb" id="product-thumb"></div>
+      <div class="product-meta">
+        <div class="product-name" id="product-name">Çalışma bekleniyor</div>
+        <div class="product-url" id="product-url">Pipeline başlatıldığında burada görünür</div>
+      </div>
+    </div>
+
+    <div class="run-meta">
+      <div class="run-status" id="run-status">
+        <span class="status-dot" data-state="idle"></span>
+        <span class="status-label">Boşta</span>
+      </div>
+      <div class="run-timer" id="run-timer">00:00</div>
+      <button class="qr-btn" id="qr-btn" hidden>📱 QR</button>
+    </div>
+  </header>
+
+  <div class="qr-modal" id="qr-modal" hidden>
+    <div class="qr-backdrop" data-close="1"></div>
+    <div class="qr-panel">
+      <div class="qr-title">Telefonla aç</div>
+      <div class="qr-frame"><img id="qr-img" alt="QR kod"></div>
+      <div class="qr-url" id="qr-url"></div>
+      <button class="qr-close" data-close="1">Kapat</button>
+    </div>
+  </div>
+
+  <div class="connection-banner" id="connection-banner" hidden></div>
+
+  <main class="pipeline-area">
+    <div class="pipeline" id="pipeline"></div>
+  </main>
+
+  <section class="panels">
+    <div class="panel panel-stream">
+      <div class="panel-title">📡 Canlı akış</div>
+      <div class="stream-content" id="stream-content">
+        <div class="output-empty">Pipeline başladığında olaylar burada akar.</div>
+      </div>
+    </div>
+  </section>
+
+  <script src="/static/payloads.js" onerror="window.__payloadRendererMissing=true"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Otomasyon Filosu — Tasarım 3: Sistem Haritası</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#0d1117; color:#e6edf3;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    padding:32px 40px; line-height:1.4;
+  }
+  .mockup-tag {
+    display:inline-block; background:#1f6feb; color:#fff; font-size:11px;
+    font-weight:700; padding:3px 9px; border-radius:5px; letter-spacing:.5px;
+    margin-bottom:14px;
+  }
+  h1 { font-size:22px; font-weight:700; margin-bottom:4px; }
+  .sub { color:#7d8590; font-size:13px; margin-bottom:28px; }
+
+  .map { display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; }
+  .col { flex:1; min-width:260px; }
+
+  .group-box {
+    background:#161b22; border:1px solid #30363d; border-radius:14px;
+    padding:18px; margin-bottom:20px;
+  }
+  .group-title {
+    font-size:12px; text-transform:uppercase; letter-spacing:.6px;
+    color:#7d8590; margin-bottom:14px; font-weight:700;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .group-title .count {
+    background:#21262d; color:#adbac7; font-size:11px; padding:1px 8px;
+    border-radius:10px; letter-spacing:0;
+  }
+  .node {
+    display:flex; align-items:center; gap:10px; padding:9px 11px;
+    border-radius:8px; background:#1c2128; border:1px solid #30363d;
+    margin-bottom:8px; font-size:13px; position:relative; transition:.12s;
+  }
+  .node:hover { border-color:#444c56; }
+  .node:last-child { margin-bottom:0; }
+  .node .dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+  .node .dot.g { background:#3fb950; box-shadow:0 0 6px rgba(63,185,80,.6); }
+  .node .dot.y { background:#d29922; box-shadow:0 0 6px rgba(210,153,34,.6); }
+  .node .dot.r { background:#f85149; box-shadow:0 0 6px rgba(248,81,73,.7); }
+  .node .nm { font-weight:600; flex:1; }
+  .node .sc { font-size:10px; color:#7d8590; }
+  .node.dim { opacity:.55; }
+
+  .feeds-line {
+    text-align:center; color:#7d8590; font-size:22px; margin:6px 0;
+  }
+  .brief-node {
+    background:linear-gradient(135deg,rgba(31,111,235,.18),rgba(63,185,80,.12));
+    border:1px solid #1f6feb; border-radius:12px; padding:14px 16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .brief-node .dot { width:11px; height:11px; border-radius:50%; background:#3fb950;
+    box-shadow:0 0 8px rgba(63,185,80,.6); }
+  .brief-node .nm { font-weight:700; font-size:14px; }
+  .brief-node .sc { font-size:11px; color:#adbac7; }
+  .mail-out {
+    text-align:center; margin-top:10px; font-size:13px; color:#56d364;
+    background:rgba(63,185,80,.1); border:1px solid rgba(63,185,80,.3);
+    border-radius:8px; padding:8px;
+  }
+
+  .railway-box {
+    background:#161b22; border:1px solid #30363d; border-radius:14px;
+    padding:18px; margin-top:20px;
+  }
+  .svc-dots { display:flex; flex-wrap:wrap; gap:9px; margin-top:12px; }
+  .svc-dot {
+    display:flex; align-items:center; gap:7px; font-size:11px;
+    background:#1c2128; border:1px solid #30363d; padding:5px 9px; border-radius:7px;
+  }
+  .svc-dot .d { width:7px; height:7px; border-radius:50%; }
+  .svc-dot .d.g{background:#3fb950;} .svc-dot .d.y{background:#d29922;} .svc-dot .d.r{background:#f85149;}
+
+  .legend { display:flex; gap:18px; align-items:center; font-size:12px;
+    color:#adbac7; margin-top:24px; flex-wrap:wrap; }
+  .legend .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; }
+  .legend .g{background:#3fb950;} .legend .y{background:#d29922;} .legend .r{background:#f85149;}
+</style>
+</head>
+<body>
+
+<div class="mockup-tag">TASARIM 3 / 3 — DUMMY VERİ</div>
+<h1>Otomasyon Filosu — Sistem Haritası</h1>
+<p class="sub">Sistemin yapısı: hangi cron hangi gruba ait, hangileri haftalık maile besleniyor. "Ne zaman" değil "ne nereye bağlı" sorusunu gösterir.</p>
+
+<div class="map">
+
+  <div class="col">
+    <div class="group-box">
+      <div class="group-title"><span>Otonom Kalite Sistemi</span><span class="count">7 cron · 6 ✓</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Bug Hunt</span><span class="sc">Her gün 02:00</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Test Coverage</span><span class="sc">Salı+Cuma 03:00</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Simplify</span><span class="sc">Cmt 04:00</span></div>
+      <div class="node"><span class="dot r"></span><span class="nm">Runbook</span><span class="sc">Paz 05:00</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Cost Optimization</span><span class="sc">Çar 07:00</span></div>
+      <div class="node"><span class="dot y"></span><span class="nm">Kör Otomasyon Avı</span><span class="sc">Per 03:00</span></div>
+    </div>
+    <div class="feeds-line">│ besler ▼</div>
+  </div>
+
+  <div class="col">
+    <div class="group-box">
+      <div class="group-title"><span>Bakım Cron'ları</span><span class="count">6 cron · 5 ✓</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Watchdog Tepkileyici</span><span class="sc">Günlük 09:00</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Dependency Security</span><span class="sc">Pzt 06:00</span></div>
+      <div class="node"><span class="dot y"></span><span class="nm">Watchdog Bakım</span><span class="sc">Cmt 12:00</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Starter Kit Yenileme</span><span class="sc">Cmt 13:00</span></div>
+      <div class="node"><span class="dot g"></span><span class="nm">Disk Temizleyici</span><span class="sc">Pzt 00:00</span></div>
+      <div class="node dim"><span class="dot g"></span><span class="nm">Ölü Proje Raporu</span><span class="sc">Ayın 1'i</span></div>
+    </div>
+    <div class="feeds-line">└─ bağımsız çalışır</div>
+  </div>
+
+  <div class="col">
+    <div class="group-box" style="background:transparent;border:0;padding:0;">
+      <div class="brief-node">
+        <span class="dot"></span>
+        <div><div class="nm">Haftalık Brief Mail</div><div class="sc">Pazartesi 11:00 · tüm logları okur, tek özet üretir</div></div>
+      </div>
+      <div class="mail-out">→ 📧 yöneticinin inbox'una tek mail</div>
+    </div>
+    <div class="group-box" style="margin-top:20px;">
+      <div class="group-title"><span>Bu hafta filo durumu</span></div>
+      <div style="font-size:13px;line-height:2;">
+        <div><span style="color:#56d364;font-weight:700;">18</span> cron sağlıklı</div>
+        <div><span style="color:#e3b341;font-weight:700;">2</span> gecikmiş — Watchdog Bakım, ornek-video-cron-2</div>
+        <div><span style="color:#ff7b72;font-weight:700;">1</span> ölü — Runbook (14 gündür hata)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="railway-box">
+  <div class="group-title"><span>Railway Servisleri</span><span class="count">16 cron · sürekli çalışan · 15 ✓</span></div>
+  <div class="svc-dots">
+    <span class="svc-dot"><span class="d g"></span>ornek-bildirim-cron</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-gorsel-cron</span>
+    <span class="svc-dot"><span class="d g"></span>isbirligi-tahsilat-takip</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-outreach-cron</span>
+    <span class="svc-dot"><span class="d g"></span>akilli-watchdog</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-video-cron-1</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-metin-cron-1</span>
+    <span class="svc-dot"><span class="d y"></span>ornek-video-cron-2</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-metin-cron-2</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-reklam-bot</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-icerik-cron</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-icerik-engine</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-aciklama-cron</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-onboarding-worker</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-lead-bot</span>
+    <span class="svc-dot"><span class="d g"></span>ornek-takip-cron</span>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="dot g"></span>Sağlıklı</span>
+  <span><span class="dot y"></span>Gecikmiş</span>
+  <span><span class="dot r"></span>Ölü</span>
+  <span style="color:#7d8590">· Soluk gösterilen node'lar bu hafta tetiklenmiyor (aylık vb.)</span>
+</div>
+
+</body>
+</html>

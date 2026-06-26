@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+/tmp/
+# Marka brief içerik cache'i (gizli olabilir, manuel backfill için lokal)
+_brief_cache.json

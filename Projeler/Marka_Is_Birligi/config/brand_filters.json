@@ -1,0 +1,14 @@
+{
+  "_comment": "Marka tespiti için filtre listeleri. analyzer.py runtime'da okur. Kendi nişine göre doldur: known_ai_brands = ilgilendiğin kategori markaları, false_positives = marka sanılan ama marka olmayan hesaplar (kişi/medya), skip_big_companies = outreach yapmak istemediğin büyük şirketler.",
+  "known_ai_brands": [
+    "ornek_marka_1",
+    "ornek_marka_2"
+  ],
+  "false_positives": [
+    "ornek_kisi_hesabi",
+    "ornek_medya_hesabi"
+  ],
+  "skip_big_companies": [
+    "ornek_buyuk_sirket"
+  ]
+}

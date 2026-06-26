@@ -1,0 +1,30 @@
+# Proje Dashboard — Proje Kataloğu
+#
+# İzlemek istediğin her Railway servisi için bir satır ekle.
+# Railway service ID + project ID'yi Railway panelinden (servis Settings) al.
+#   folder            — repo içindeki proje klasör adı (sinyal taraması için)
+#   display_name      — dashboard'da görünecek ad
+#   railway_service_id / railway_project_id — Railway'den
+#   ai_tags           — opsiyonel; bu projenin kullandığı AI sağlayıcıları
+#                       (collector bu etikete bakıp maliyeti paylaştırır)
+#                       geçerli değerler: [openai, anthropic, kie, apify, ...]
+#
+# Aşağıda iki örnek satır var — kendi servislerinle değiştir/çoğalt.
+
+projects:
+  - display_name: ornek-cron-servis
+    folder: Ornek_Proje
+    railway_service_id: <RAILWAY_SERVICE_ID>
+    railway_project_id: <RAILWAY_PROJECT_ID>
+    ai_tags: [openai]
+
+  - display_name: ornek-worker-servis
+    folder: Ornek_Worker
+    railway_service_id: <RAILWAY_SERVICE_ID>
+    railway_project_id: <RAILWAY_PROJECT_ID>
+
+# Railway'de olmayan ama takipte tutmak istediğin lokal projeler:
+local_projects:
+  - display_name: Ornek_Statik_Site
+    folder: Ornek_Statik_Site
+    note: Örnek — Netlify/Vercel'de barınan statik site

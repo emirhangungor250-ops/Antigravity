@@ -1,0 +1,19 @@
+{
+  "name": "reklam-fabrikasi",
+  "metadata": {
+    "description": "Reklam Fabrikası için özel eklenti marketplace'i. Tam DTC kreatif döngüsü için beceriler, slash komutları ve MCP sunucuları: müşteri sesi, marka DNA'sı, reklam casusu, marka karakterleri, ürün fotoğrafları, statik reklamlar, UGC senaryoları, yüz tutarlılıklı UGC videoları, reklam metni, çoğaltılmış reklamlar, yeniden yapılandırılmış rakip reklamları, açılış sayfaları, artı claude.ai web uygulamasındaki Meta resmi Ads MCP için zengin bağlamlı prompt hazırlayan aktarım iş akışı."
+  },
+  "owner": {
+    "name": "<KULLANICI_ADI>"
+  },
+  "plugins": [
+    {
+      "name": "reklam-fabrikasi",
+      "source": "./",
+      "version": "1.7.0",
+      "description": "Reklam Fabrikası için özel Claude Code eklenti marketplace'i. On üç kreatif döngü becerisi, aralarında her reklamda aynı yüzü ve ürünü sabitleyen yeni marka karakter yayıncısı ve ürün fotoğrafı üreticisi, artı claude.ai web uygulamasındaki Meta resmi Ads MCP için zengin bağlamlı prompt hazırlayan bir Meta Ads aktarım becerisi.",
+      "category": "marketing",
+      "keywords": ["meta-ads", "facebook-ads", "ugc", "creative", "dtc", "voc", "brand-dna", "nano-banana", "gpt-image", "seedance", "fal-ai", "higgsfield", "character", "product-shot", "landing-page"]
+    }
+  ]
+}

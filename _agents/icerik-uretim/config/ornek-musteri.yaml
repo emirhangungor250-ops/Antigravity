@@ -1,0 +1,133 @@
+# ═══════════════════════════════════════════════════════════════
+# 🎬 Örnek Müşteri — İçerik Üretim Agent Konfigürasyonu
+# ═══════════════════════════════════════════════════════════════
+# Agent: _agents/icerik-uretim/AGENT.md
+# Amaç: Bir marka/müşteri için içerik üretim pipeline'ının
+#        varsayılan ayarlarını tanımlar.
+# Kullanım: Bu dosyayı kopyala → config/{musteri-adi}.yaml olarak
+#           kaydet → kendi marka bilgilerinle doldur.
+# ═══════════════════════════════════════════════════════════════
+
+# ── Marka Profili ──────────────────────────────────────────────
+marka:
+  isim: "<MARKA_ADI>"
+  unvan: "<MARKA_UNVANI>"            # Örn: "Yatırım Danışmanı", "Fitness Koçu"
+  platformlar:
+    instagram: "<INSTAGRAM_HANDLE>"
+    tiktok: "<TIKTOK_HANDLE>"
+    youtube: "<YOUTUBE_KANAL>"
+  web_sitesi: null  # Varsa eklenecek
+
+# ── Dil ve Ton Kuralları ──────────────────────────────────────
+dil:
+  ana_dil: "Türkçe"
+  teknik_terimler: "İngilizce olduğu gibi bırakılır (niş terimleri buraya)"
+  para_birimi:
+    birincil: "USD"
+    ikincil: "TRY"  # TL karşılığı parantez içinde verilir
+  kur_araci: "Projeler/<ICERIK_PROJESI>/tools/currency.py"
+
+ton:
+  stil: "samimi-profesyonel"
+  aciklama: >
+    Samimi ama güvenilir. Sohbet havasında ama teknik detaylardan kaçmaz.
+    Otoriter değil, değer sunan yaklaşım.
+  cumle_uzunlugu: "kisa"  # Video için yazılıyor — her cümle nefes alınabilir uzunlukta
+  hikaye_payoff: true  # Her scriptin sonunda izleyiciye somut bir değer/bilgi sunulmalı
+
+# ── Hedef Kitle ────────────────────────────────────────────────
+hedef_kitle:
+  tanim: "<HEDEF_KITLE_TANIMI>"
+  yas_araligi: "<YAS_ARALIGI>"
+  gelir_profili: "<GELIR_PROFILI>"
+  ilgi_alanlari:
+    - "<ILGI_ALANI_1>"
+    - "<ILGI_ALANI_2>"
+  agri_noktalari:
+    - "<AGRI_NOKTASI_1>"
+    - "<AGRI_NOKTASI_2>"
+
+# ── İçerik Kategorileri ───────────────────────────────────────
+icerik_turleri:
+  analiz:
+    aciklama: "Konu/ürün/bölge analizi — artı/eksi dengeli"
+    format: "Hook → Script → Tablo (✅/❌) → CTA"
+    referans: "Projeler/<ICERIK_PROJESI>/reference-scripts/analiz_scriptleri.md"
+    workflow: "_agents/icerik-uretim/workflows/script-yaz.md"
+
+  genel_bilgi:
+    aciklama: "Genel bilgi ve tavsiyeler"
+    format: "Soru-Cevap veya sohbet formatında akıcı metin"
+    referans: "Projeler/<ICERIK_PROJESI>/reference-scripts/genel_scriptleri.md"
+    workflow: "_agents/icerik-uretim/workflows/script-yaz.md"
+
+  hesaplama:
+    aciklama: "Rakamlarla desteklenmiş somut senaryolar"
+    format: "Hook → Hesaplama → Tablo → Net Sonuç → CTA"
+    referans: "Projeler/<ICERIK_PROJESI>/reference-scripts/hesaplama_scriptleri.md"
+    workflow: "_agents/icerik-uretim/workflows/hesaplama-scripti.md"
+
+  ilham_uyarlama:
+    aciklama: "Rakip videolardan ilham alarak orijinal script üretimi"
+    format: "Kaynak analiz + farklılaştırılmış yeni script"
+    workflow: "_agents/icerik-uretim/workflows/ilham-al.md"
+
+# ── Hesaplama Metrikleri ──────────────────────────────────────
+# Niş'ine göre kendi sabit metriklerini buraya tanımla
+hesaplama_metrikleri:
+  metrik_1: 0.08
+  metrik_2: 0.07
+  hesap_araci: "Projeler/<ICERIK_PROJESI>/tools/calculator.py"
+
+# ── Marka Kuralları (Kesin Yasak ve Zorunluluklar) ────────────
+kurallar:
+  yasaklar:
+    - "Kesin kazanırsınız"
+    - "Garantili getiri"
+    - "Risk yok"
+    - "Hemen alın"
+    - "Son fırsat" (gerçek değilse)
+    - Abartılı ve temelsiz vaatler
+
+  zorunluluklar:
+    - "Her scriptte CTA (Call to Action) olmalı"
+    - "Hesaplama içeriklerinde tablo zorunlu"
+    - "Rakam içeriyorsa kaynak linki zorunlu"
+    - "Analizlerde artı/eksi dengesi şart"
+    - "En az 3 referans script okunmalı"
+
+  format_yapisi:
+    hook: "1-2 cümle — dikkat çekici açılış"
+    script: "Akıcı paragraflar veya soru-cevap formatı"
+    tablo: "Avantaj/Dezavantaj veya hesaplama tablosu"
+    cta: "Soru veya takip çağrısı"
+
+# ── Skill ve Tool Referansları ────────────────────────────────
+skills:
+  icerik_yazari: "Projeler/<ICERIK_PROJESI>/skills/icerik-yazari/SKILL.md"
+  video_uretim: "_skills/kie-ai-video-production/SKILL.md"
+  rakip_analiz: "_skills/rakip-analiz/SKILL.md"
+
+tools:
+  hesap_makinesi: "Projeler/<ICERIK_PROJESI>/tools/calculator.py"
+  transkript: "Projeler/<ICERIK_PROJESI>/tools/transcript.py"
+  doviz_cevirici: "Projeler/<ICERIK_PROJESI>/tools/currency.py"
+  radar_motor: "_skills/rakip-analiz/scripts/radar_engine.py"
+
+# ── Rakip Listesi ─────────────────────────────────────────────
+rakipler:
+  dosya: "Projeler/<ICERIK_PROJESI>/rakipler.md"
+  platformlar:
+    - "Instagram"
+    - "TikTok"
+    - "YouTube"
+
+# ── API Anahtarları ───────────────────────────────────────────
+api:
+  kaynak: "_knowledge/api-anahtarlari.md"
+  gerekli_anahtarlar:
+    - "Kie AI API Key"
+    - "Supadata API Key (transkript için)"
+    - "Apify Token (rakip analizi için)"
+    - "ElevenLabs API Key (seslendirme için — opsiyonel)"
+    - "ImgBB API Key (görsel yükleme için — opsiyonel)"

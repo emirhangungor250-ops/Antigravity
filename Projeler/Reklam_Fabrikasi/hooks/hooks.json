@@ -1,0 +1,44 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(ls -td ~/.claude/plugins/cache/reklam-fabrikasi/reklam-fabrikasi/*/ 2>/dev/null | head -n 1)scripts/hook-dispatch.sh\" session-start"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(ls -td ~/.claude/plugins/cache/reklam-fabrikasi/reklam-fabrikasi/*/ 2>/dev/null | head -n 1)scripts/hook-dispatch.sh\" enforce-no-dashes"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(ls -td ~/.claude/plugins/cache/reklam-fabrikasi/reklam-fabrikasi/*/ 2>/dev/null | head -n 1)scripts/hook-dispatch.sh\" self-heal-marker",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat >/dev/null 2>&1 || true; PROJECT_DIR=\"$(pwd)/Reklam Fabrikası\"; if [ -d \"$PROJECT_DIR\" ]; then mkdir -p \"$PROJECT_DIR/_meta\"; TS=\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"; printf '{\\n  \"last_completed_at\": \"%s\"\\n}\\n' \"$TS\" > \"$PROJECT_DIR/_meta/state.json\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

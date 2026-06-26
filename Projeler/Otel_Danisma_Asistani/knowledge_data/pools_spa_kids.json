@@ -1,0 +1,31 @@
+{
+  "_sablon_notu": "Buraya havuz, termal, spa ve çocuk olanaklarınızı yazın. Günübirlik (day-use) ücret/koşullarını da burada belirtebilirsiniz.",
+  "meta": {
+    "hotel": "<TESIS ADI>",
+    "version": "<surum/etiket>",
+    "lang": "tr",
+    "last_updated": "<YYYY-MM-DD>"
+  },
+  "data": {
+    "pools": [
+      {"name": "<havuz adı>", "type": "<iç / dış / termal>", "notes": "<not>"}
+    ],
+    "spa": {
+      "services": ["<hizmet 1>", "<hizmet 2>"],
+      "notes": "<spa notları, örn. bone zorunluluğu>"
+    },
+    "kids": {
+      "mini_club": "<mini club bilgisi>",
+      "age_range": "<yaş aralığı>"
+    },
+    "day_use": {
+      "available": false,
+      "price": "<günübirlik ücreti>",
+      "conditions": "<koşullar>"
+    }
+  },
+  "faq": [
+    {"q": "<örnek havuz/spa sorusu>", "a": "<örnek cevap>"}
+  ],
+  "routing_triggers": ["havuz", "termal", "spa", "çocuk", "günübirlik", "day use"]
+}

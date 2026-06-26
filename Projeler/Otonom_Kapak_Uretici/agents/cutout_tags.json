@@ -1,0 +1,10 @@
+{
+    "_comment": "SABLON: Kendi anchor (yuz referansi) fotograflarinizi buraya tanimlayin. master_anchor her zaman image_input[0] olarak gonderilir — en net front-face cutout olmali. secondary_anchors ek referans acilaridir. cutouts altinda her dosya icin mood/angle/quality meta-verisi tutulur. Fotograflari assets/cutouts/ klasorune PNG olarak koyun (arka plani temizlenmis, yuz net).",
+    "master_anchor": "cutout_ornek_1.png",
+    "secondary_anchors": ["cutout_ornek_2.png", "cutout_ornek_3.png"],
+    "cutouts": {
+        "cutout_ornek_1.png": {"mood": "serious", "angle": "front", "quality": "high", "size_mb": 3.0},
+        "cutout_ornek_2.png": {"mood": "happy", "angle": "front", "quality": "high", "size_mb": 3.0},
+        "cutout_ornek_3.png": {"mood": "curious", "angle": "three-quarter", "quality": "high", "size_mb": 3.0}
+    }
+}

@@ -1,0 +1,11 @@
+# Personel Mail Hatırlatıcı
+
+venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+data/gmail-token.json
+data/reminder_history.json
+*.bak
+.DS_Store

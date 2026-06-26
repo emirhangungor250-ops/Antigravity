@@ -1,0 +1,710 @@
+import os
+import time
+import base64
+import requests
+import json
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types as genai_types
+
+load_dotenv()
+# master.env sadece lokal ortamda mevcut (relative path), Railway'de env variables direkt set edilir
+_master_env = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
+    "_knowledge", "credentials", "master.env",
+)
+if os.path.exists(_master_env):
+    load_dotenv(_master_env)
+
+KIE_API_KEY = os.getenv("KIE_API_KEY")
+IMGBB_API_KEY = os.getenv("IMGBB_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+try:
+    client = genai.Client(api_key=GEMINI_API_KEY)
+except Exception as e:
+    print(f"Warning: Failed to initialize Gemini Client: {e}")
+    client = None
+
+
+def upload_to_imgbb(image_path: str) -> str:
+    print(f"Uploading {image_path} to ImgBB...")
+    with open(image_path, "rb") as file:
+        encoded_image = base64.b64encode(file.read()).decode("utf-8")
+    
+    url = "https://api.imgbb.com/1/upload"
+    payload = {
+        "key": IMGBB_API_KEY,
+        "image": encoded_image
+    }
+    try:
+        response = requests.post(url, data=payload, timeout=30)
+        if response.status_code == 429:
+            print("ImgBB rate limited (429), retrying in 30s...")
+            time.sleep(30)
+            response = requests.post(url, data=payload, timeout=30)
+        if response.status_code == 200:
+            img_url = response.json()["data"]["url"]
+            print(f"Uploaded successfully to ImgBB: {img_url}")
+            return img_url
+        else:
+            print(f"ImgBB upload failed: {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"ImgBB network error: {e}")
+        return None
+
+KIE_CREATE_URL = "https://api.kie.ai/api/v1/jobs/createTask"
+KIE_POLL_URL_TPL = "https://api.kie.ai/api/v1/jobs/recordInfo?taskId={task_id}"
+KIE_MAX_POLL_SECONDS = 300
+
+
+def _poll_kie_task(task_id: str, headers: dict) -> str:
+    poll_url = KIE_POLL_URL_TPL.format(task_id=task_id)
+    poll_start = time.time()
+    while True:
+        if time.time() - poll_start > KIE_MAX_POLL_SECONDS:
+            print(f"⏱️ Polling timeout ({KIE_MAX_POLL_SECONDS}s). Aborting.")
+            return None
+        try:
+            poll_resp = requests.get(poll_url, headers=headers, timeout=30)
+            if poll_resp.status_code != 200:
+                print(f"Polling failed: {poll_resp.text}")
+                time.sleep(5)
+                continue
+        except requests.exceptions.RequestException as e:
+            print(f"Polling network error: {e}")
+            time.sleep(5)
+            continue
+        data = poll_resp.json().get("data") or {}
+        if not isinstance(data, dict):
+            data = {}
+        state = data.get("state")
+        if state == "success":
+            result_json = data.get("resultJson", "{}")
+            result_data = json.loads(result_json)
+            print("Generation successful!")
+            final_image_url = None
+            if isinstance(result_data, list) and len(result_data) > 0:
+                final_image_url = result_data[0]
+            elif isinstance(result_data, dict) and "resultUrls" in result_data:
+                final_image_url = result_data["resultUrls"][0]
+            elif isinstance(result_data, dict) and "images" in result_data:
+                final_image_url = result_data["images"][0]["url"]
+            elif isinstance(result_data, dict) and "url" in result_data:
+                final_image_url = result_data["url"]
+            if final_image_url:
+                return final_image_url
+            print(f"Could not parse result URL from: {result_json}")
+            return None
+        elif state == "failed":
+            print(f"Generation failed. Msg: {data.get('failMsg')}")
+            return None
+        elif state in ["processing", "wait", "waiting", "generating"]:
+            time.sleep(10)
+        else:
+            print(f"Unknown state: {state}")
+            time.sleep(10)
+
+
+def _create_kie_task(payload: dict, headers: dict, label: str) -> str:
+    try:
+        response = requests.post(KIE_CREATE_URL, headers=headers, json=payload, timeout=30)
+        if response.status_code != 200:
+            print(f"❌ {label} createTask failed (HTTP {response.status_code}): {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"❌ {label} network error: {e}")
+        return None
+    try:
+        resp_json = response.json()
+    except ValueError:
+        print(f"❌ {label}: response is not JSON: {response.text[:300]}")
+        return None
+    data = resp_json.get("data")
+    if not isinstance(data, dict):
+        print(f"❌ {label}: taskId not found. Full response: {resp_json}")
+        return None
+    task_id = data.get("taskId")
+    if not task_id:
+        print(f"❌ {label}: taskId missing in data. Full response: {resp_json}")
+        return None
+    return task_id
+
+
+def _call_kie_gpt_image_2(image_inputs: list, prompt: str) -> str:
+    print(f"🎨 GPT Image 2 ({len(image_inputs)} ref)...")
+    headers = {"Authorization": f"Bearer {KIE_API_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "model": "gpt-image-2-image-to-image",
+        "input": {
+            "prompt": prompt,
+            "aspect_ratio": "9:16",
+            "resolution": "1K",
+            "input_urls": image_inputs,
+        },
+    }
+    task_id = _create_kie_task(payload, headers, "GPT Image 2")
+    if not task_id:
+        return None
+    print(f"✅ GPT Image 2 task: {task_id}")
+    print(f"   🔗 https://kie.ai/gpt-image-2?taskId={task_id}")
+    return _poll_kie_task(task_id, headers)
+
+
+def _call_kie_nano_banana(image_inputs: list, prompt: str) -> str:
+    print(f"🍌 Nano Banana 2 9:16 ({len(image_inputs)} ref)...")
+    headers = {"Authorization": f"Bearer {KIE_API_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "model": "nano-banana-2",
+        "input": {
+            "prompt": prompt,
+            "aspect_ratio": "9:16",
+            "image_input": image_inputs,
+        },
+    }
+    task_id = _create_kie_task(payload, headers, "Nano Banana 2")
+    if not task_id:
+        return None
+    print(f"✅ Nano Banana task: {task_id}")
+    print(f"   🔗 https://kie.ai/nano-banana?taskId={task_id}")
+    return _poll_kie_task(task_id, headers)
+
+
+def generate_cover_with_nanobanana(image_url: str, prompt: str, extra_ref_urls: list = None) -> str:
+    """Cover orchestrator: GPT Image 2 primary, Nano Banana 2 fallback.
+    GPT Image 2 yüz tutarlılığı genelde iyi; sporadik drift olduğunda
+    vision review face_matches_reference gate ile yakalanıp retry tetiklenir.
+    """
+    image_inputs = [image_url]
+    if extra_ref_urls:
+        for ref_url in extra_ref_urls[:2]:
+            if ref_url and ref_url != image_url:
+                image_inputs.append(ref_url)
+    print(f"  Using {len(image_inputs)} reference image(s) for face identity locking.")
+
+    result = _call_kie_gpt_image_2(image_inputs, prompt)
+    if result:
+        return result
+
+    print("⚠️ GPT Image 2 başarısız → Nano Banana 2 fallback...")
+    result = _call_kie_nano_banana(image_inputs, prompt)
+    if result:
+        print("✅ Fallback (Nano Banana 2) başarılı.")
+        return result
+
+    print("❌ Hem GPT Image 2 hem Nano Banana 2 başarısız.")
+    return None
+
+
+def generate_cover_text_and_scene(video_name: str, script_text: str) -> dict:
+    """
+    Generates BOTH the cover text AND a matching scene description for visual-text consistency.
+    Returns a dict with 'cover_text' and 'scene_description'.
+    
+    CRITICAL: Video names (e.g. 'Typeless 5', 'Meshy 4') are INTERNAL identifiers only.
+    They must NEVER be used as cover text. The script content must be analyzed instead.
+    """
+    print(f"Generating cover text + scene description via Gemini (Video: {video_name})...")
+    if not client or not script_text:
+        print("WARNING: No Gemini client or no script. Using generic fallback.")
+        return {"cover_text": "BUNU BİLMELİSİN", "scene_description": "A cinematic close-up of a person with a knowing expression, dramatic lighting."}
+    
+    prompt = f"""
+    You are an expert Turkish social media strategist for short-form videos (Reels/TikTok/Shorts).
+    
+    IMPORTANT CONTEXT: The video's internal tracking name is '{video_name}'. This is just an internal 
+    identifier and has NOTHING to do with the video's content. For example:
+    - "Typeless 5" means this is the 5th video about the AI tool called Typeless, NOT about being "typeless"
+    - "Meshy 5" means this is a video about the 3D modeling tool Meshy
+    - "Kimi 4" means this is a video about the AI assistant called Kimi
+    DO NOT use the video name, tool name, or any translation/interpretation of the video name as the cover text.
+    
+    Here is the actual video script/content that describes what the video is about:
+    \"\"\"
+    {script_text}
+    \"\"\"
+    
+    Task: Based ONLY on the script content above, create TWO things:
+    
+    1. **cover_text**: A highly engaging, punchy, 2 to 4-word Turkish text to display on the video's cover photo.
+       STRICT RULES:
+       - It MUST be in Turkish only. NO English words allowed under any circumstance.
+       - It MUST NOT be the AI tool's name (e.g., NOT "Typeless", NOT "Meshy", NOT "Kimi").
+       - It MUST NOT be the video title or any translation/transliteration of the video title.
+       - It MUST be a clickbaity, provocative hook based on the VIDEO'S ACTUAL CONTENT and value proposition.
+       - Think about: What benefit does the viewer get? What problem does it solve? What emotion does it evoke?
+       - Keep it very concise (max 4 words, ideally 2-3).
+       - ALL CAPS.
+       - Good examples: "ANTRENÖRÜNÜ KOV", "AJANSA PARA VERME", "CV'Nİ ÇÖPTEN KURTAR", "KOMİSYONA SON", "KLAVYEYİ ÇÖPE AT", "SEKRETERİNİ KOV"
+       - Bad examples: "TİPSİZ 5" (translation of video name), "TYPELESS" (English), "YENİ ARAÇ" (too vague)
+    
+    2. **scene_description**: A creative visual scene description (in English, 1-2 sentences) that DIRECTLY illustrates the cover_text meaning.
+       CREATIVE RULES:
+       - The scene must visually match and reinforce the cover text with a strong PHYSICAL METAPHOR or ACTION.
+       - CRITICAL BAN: ABSOLUTELY NO "person sitting at a computer", "person holding a phone", or "looking at a screen". This is forbidden.
+       - GOLDEN STANDARDS: 
+         * Text: "KLAVYEYİ ÇÖPE AT" -> Scene: Person standing triumphantly on a mountain of broken keyboards.
+         * Text: "CV'Nİ KURTAR" -> Scene: Person pulling a glowing CV document out of a dark trash can.
+       - Use dramatic, cinematic visuals — think movie poster, not stock photo.
+       - The scene must be ACTIONABLE and SPECIFIC, not vague.
+    
+    Return your response as valid JSON with exactly these keys:
+    {{
+        "cover_text": "YOUR TEXT HERE",
+        "scene_description": "A cinematic scene of..."
+    }}
+    """
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config={"response_mime_type": "application/json"}
+        )
+        result = json.loads(response.text)
+        if isinstance(result, list): result = result[0] if len(result) > 0 else {}
+        cover_text = result.get('cover_text', '')
+        
+        # Safety check: Reject if the cover text looks like the video name
+        video_name_lower = video_name.lower().replace(' ', '')
+        cover_text_lower = cover_text.lower().replace(' ', '')
+        if video_name_lower in cover_text_lower or cover_text_lower in video_name_lower:
+            print(f"WARNING: Cover text '{cover_text}' looks like the video name '{video_name}'. Regenerating...")
+            # Try once more with stronger instruction
+            retry_prompt = f"""The previous attempt generated '{cover_text}' which is too similar to the video name '{video_name}'.
+            Generate a COMPLETELY DIFFERENT cover text that focuses on the VIDEO'S VALUE PROPOSITION from the script.
+            Script: \"{script_text[:500]}\"
+            Return JSON: {{"cover_text": "...", "scene_description": "..."}}"""
+            retry_response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=retry_prompt,
+                config={"response_mime_type": "application/json"}
+            )
+            result = json.loads(retry_response.text)
+            if isinstance(result, list): result = result[0] if len(result) > 0 else {}
+            cover_text = result.get('cover_text', '')
+        
+        print(f"Generated Text: {cover_text}")
+        print(f"Scene: {result.get('scene_description', '')}")
+        return result
+    except Exception as e:
+        print(f"Error generating cover text+scene: {e}")
+        return {"cover_text": "BUNU BİLMELİSİN", "scene_description": "A cinematic close-up of a person with a dramatic, knowing expression."}
+
+
+def generate_three_themes(video_name: str, script_text: str) -> list:
+    """
+    Gemini ile bir video scripti için 3 FARKLI yaratıcı tema üretir.
+    Her tema: {'theme_name', 'cover_text', 'scene_description'}
+    Kullanım: 3 tema × 2 varyasyon = 6 kapak.
+    """
+    print(f"🧠 Generating 3 themes via Gemini (Video: {video_name})...")
+    if not client:
+        raise EnvironmentError(
+            "CRITICAL: Gemini client not initialized. Check GEMINI_API_KEY env variable. "
+            "Cannot generate themes without AI — aborting pipeline."
+        )
+    
+    if not script_text or len(script_text.strip()) < 20:
+        print(f"⚠️ WARNING: Script too short or empty for '{video_name}' ({len(script_text.strip()) if script_text else 0} chars)")
+        print(f"   Generating themes from video name context instead...")
+        script_text = (
+            f"Video başlığı: {video_name}. "
+            f"Bu başlıktan yola çıkarak Türkçe, dikkat çekici ve videonun konusuyla ilgili "
+            f"yaratıcı kapak metinleri üret. Video adını doğrudan kullanma."
+        )
+
+    prompt = f"""
+    You are an expert Turkish social media strategist for short-form videos (Reels/TikTok/Shorts).
+    
+    IMPORTANT: The video's internal tracking name '{video_name}' is just an identifier—ignore it for text creation.
+    
+    Here is the actual video script:
+    \"\"\"
+    {script_text}
+    \"\"\"
+    
+    Task: Based ONLY on the script content, create exactly 3 COMPLETELY DIFFERENT creative theme directions.
+    Each theme should have a unique angle, emotion, and visual concept.
+    
+    For each theme, provide:
+    1. **theme_name**: A short internal label (e.g., "shock", "mystery", "power")
+    2. **cover_text**: A punchy, 2-4 word Turkish clickbait hook. STRICT RULES:
+       - Turkish ONLY. NO English words.
+       - NOT the video/tool name.
+       - ALL CAPS, max 4 words.
+       - Examples: "ANTRENÖRÜNÜ KOV", "AJANSA PARA VERME", "KOMİSYONA SON"
+    3. **scene_description**: A creative, cinematic visual scene (in English) that DIRECTLY illustrates the cover_text.
+       - CRITICAL BAN: ABSOLUTELY NO "person sitting at a computer", "person holding a phone", or "looking at a screen". This is strictly forbidden.
+       - Use dramatic PHYSICAL METAPHORS (e.g. standing on broken keyboards, pulling a glowing document from trash).
+       - Must be SPECIFIC and actionable.
+       - CRITICAL: The scene MUST be SIMPLE and CLEAN with maximum 2-3 main visual elements.
+         These covers will be viewed as tiny ~150px thumbnails on Instagram grid.
+         Too many background elements create visual clutter. Think BOLD and SIMPLE, not detailed and complex.
+       - GOOD example: man + giant robot shadow on wall, or man + broken keyboards on floor (2 elements, clean)
+       - BAD example: man sitting closely looking at laptop or phone (cliché, banned, cluttered)
+    
+    The 3 themes MUST be meaningfully different from each other:
+    - Theme 1: Focus on SHOCK / PROVOCATIVE angle
+    - Theme 2: CURIOSITY angle — pose a SPECIFIC question or counter-intuitive claim drawn DIRECTLY from the script's concrete details (numbers, prices, durations, the actual tool/process being shown).
+      FORBIDDEN generic mystery hooks (these say nothing about the script): "BU NASIL MÜMKÜN?", "SAKIN İZLEME", "BUNA İNANAMAYACAKSIN", "DURUN BİR DAKİKA", "AKLINIZ DURACAK", "GÖZLERİNİZE İNANAMAYACAKSINIZ".
+      GOOD specific examples (each anchored in a real script detail):
+      - Script mentions 3-month dev time + no-code → "3 AY MI? 30 DK!"
+      - Script mentions 120K TL cost being skipped → "120 BİN MI? BEDAVA!"
+      - Script mentions hiring vs replacing with AI → "MAAŞ MI? PROMPT MI?"
+      Theme 2's cover_text MUST reference a concrete fact from the script — never a vague "you won't believe it" trope.
+    - Theme 3: Focus on EMPOWERMENT / BENEFIT angle
+    
+    Return EXACTLY this JSON array:
+    [
+        {{
+            "theme_name": "...",
+            "cover_text": "...",
+            "scene_description": "..."
+        }},
+        {{
+            "theme_name": "...",
+            "cover_text": "...",
+            "scene_description": "..."
+        }},
+        {{
+            "theme_name": "...",
+            "cover_text": "...",
+            "scene_description": "..."
+        }}
+    ]
+    """
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config={"response_mime_type": "application/json"}
+        )
+        raw = response.text.replace("```json", "").replace("```", "").strip()
+        parsed = json.loads(raw)
+        if isinstance(parsed, list):
+            return parsed[:3]
+        return [parsed]
+    except Exception as e:
+        print(f"❌ CRITICAL: Failed to generate themes via Gemini: {e}")
+        print(f"   Cannot proceed with generic fallback — aborting to prevent low-quality covers.")
+        raise RuntimeError(f"Gemini theme generation failed for '{video_name}': {e}") from e
+
+
+# Keep backward compatibility
+def generate_cover_text(video_name: str, script_text: str) -> str:
+    result = generate_cover_text_and_scene(video_name, script_text)
+    return result.get("cover_text", video_name.upper())
+
+
+def evaluate_image_with_vision(image_url: str, style_guide: str, expected_text: str, learnings: str = ""):
+    print("Evaluating generated image with Gemini 2.5 Pro Vision...")
+    
+    if not client:
+         print("Gemini client not initialized. Cannot evaluate.")
+         return {"score": 0, "critique": "Gemini Client Error", "improved_prompt": ""}
+    
+    try:
+         img_resp = requests.get(image_url, timeout=30)
+         img_bytes = img_resp.content
+    except Exception as e:
+         print(f"Failed to fetch image for evaluation: {e}")
+         return {"score": 0, "critique": "Fetch Image Error", "improved_prompt": ""}
+         
+    system_prompt = (
+        "You are an expert design director evaluating a generated social media cover photo for Instagram Reels. "
+        "Your job is to review the image based on a specific Style Guide, past learnings from user feedback, "
+        "and critical quality checks."
+    )
+    user_prompt = f"""
+    Here is the Rourke Style Guide we are trying to achieve:
+    {style_guide}
+    
+    Here are CRITICAL learnings from past user feedback that MUST be checked:
+    {learnings}
+    
+    The text that MUST be on the image is: "{expected_text}"
+    
+    Evaluate the image on ALL of the following criteria. Each violation should significantly reduce the score:
+
+    ## CRITICAL CHECKS (Instant fail = score 0-2 if violated):
+    1. **Text Present**: Is there ANY text visible on the image at all? If NO text is rendered → score 0.
+    2. **Text Duplication**: Is the text repeated/duplicated? If yes → score 0.
+    3. **English Words**: Does the rendered text or ANY visible text/element contain ANY English words? If yes → score 0.
+       - Check not only the main text but also any text on computer screens, books, signs, etc.
+    4. **Text Spelling**: Is the text spelled exactly as specified? Any misspelling → score 2.
+    5. **Face Identity Match** (CRITICAL — pixel-level identity lock): Compare the generated person's face to the reference subject — a Turkish male in his late 20s/early 30s with specific facial structure shown in the original anchor image. Is this UNMISTAKABLY the SAME real person, not a similar-looking but distinct individual?
+       - Pay attention to: bone structure, eye shape & spacing, nose bridge, lip shape, jawline, ethnicity, age.
+       - If the face looks like a DIFFERENT person (even if same ethnicity/age range/style) → face_matches_reference: false → score 0.
+       - This is the most important check: a wrong face makes the cover unusable regardless of other quality.
+       - When uncertain, lean false — it's better to retry than to ship a wrong-face cover.
+    
+    ## HIGH PRIORITY CHECKS (Major penalty if violated):
+    5. **Instagram 4:5 Safe Zone**: Instagram crops 9:16 to 4:5 on profile grid. The top ~285px and bottom ~285px get cut.
+       - Is ALL text within the safe zone (y=285 to y=1635 on a 1080x1920 image)?
+       - Text at the very top or very bottom will be cropped → score max 3.
+    6. **Text Size**: Is the text LARGE enough to read on a small phone screen? 
+       - Text should occupy at least 60-80% of the image width.
+       - If text is small/hard to read → score max 4.
+    7. **Text Readability**: Does the text stand out from the background? High contrast needed.
+    
+    ## QUALITY CHECKS:
+    8. **Subject Framing**: Is the person shown in close/medium shot (waist up or chest up)?
+       - Full-body far shots are too small for social media → penalty.
+    9. **Visual-Text Consistency**: Does the scene/action in the image match what the text says?
+       - The visual should reinforce the text message.
+    10. **Visual Creativity**: Is the scene creative and original, or is it a cliché?
+        - Cliché: Person sitting at computer, typing on laptop, or looking at phone. MASSIVE PENALTY.
+        - Creative: Dramatic physical metaphors (e.g. standing on broken keyboards, pulling from trash, giant objects). BONUS.
+    11. **Overall Aesthetic**: Cinematic, moody, professional look as per Rourke style guide.
+    12. **Face Identity**: Does the person look consistent with the reference photo?
+    13. **Background Simplicity (GRID TEST)**: Does the background have maximum 2-3 main visual elements?
+        - Imagine this image shrunk to 150x150 pixels on Instagram grid. Is it still clean and readable?
+        - Too many characters, objects, or details in background → PENALTY (score max 5).
+        - When in doubt, simpler is better.
+    14. **Overlay Text vs In-Scene Text**: Does the image have a large, bold OVERLAY text?
+        - Text only on a paper, screen, or other in-scene object is NOT sufficient.
+        - The text must be a prominent overlay that reads at thumbnail size → score max 3 if missing.
+    
+    Provide your evaluation in JSON format:
+    {{
+        "score": <number 0-10>,
+        "critique": "<short string explaining good and bad>",
+        "text_present": <true/false>,
+        "text_duplicated": <true/false>,
+        "has_english_words": <true/false>,
+        "text_in_safe_zone": <true/false>,
+        "text_large_enough": <true/false>,
+        "visual_text_consistent": <true/false>,
+        "face_matches_reference": <true/false>,
+        "background_too_cluttered": <true/false>,
+        "has_overlay_text": <true/false>,
+        "improved_prompt": "<if score < 8, a new detailed prompt fixing all issues>"
+    }}
+    """
+    
+    try:
+         image_part = genai_types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg")
+         response = client.models.generate_content(
+             model="gemini-2.5-flash",
+             contents=[
+                 image_part,
+                 system_prompt + "\n\n" + user_prompt
+             ],
+             config={"response_mime_type": "application/json"}
+         )
+         result = response.text
+         evaluation = json.loads(result)
+         if isinstance(evaluation, list): evaluation = evaluation[0] if len(evaluation) > 0 else {}
+         
+         # Enforce hard rules
+         if not evaluation.get("text_present", True):
+             evaluation["score"] = 0
+             evaluation["critique"] = f"CRITICAL: No text rendered on image. {evaluation.get('critique', '')}"
+         if evaluation.get("text_duplicated", False):
+             evaluation["score"] = 0
+             evaluation["critique"] = f"CRITICAL: Text is duplicated. {evaluation.get('critique', '')}"
+         if evaluation.get("has_english_words", False):
+             evaluation["score"] = 0
+             evaluation["critique"] = f"CRITICAL: English words detected in text. {evaluation.get('critique', '')}"
+         if not evaluation.get("face_matches_reference", True):
+             evaluation["score"] = 0
+             evaluation["critique"] = f"CRITICAL: Face does not match reference subject — wrong person generated. {evaluation.get('critique', '')}"
+         if not evaluation.get("text_in_safe_zone", True):
+             evaluation["score"] = min(evaluation.get("score", 0), 3)
+             evaluation["critique"] = f"CRITICAL: Text outside 4:5 safe zone. {evaluation.get('critique', '')}"
+         if evaluation.get("background_too_cluttered", False):
+             evaluation["score"] = min(evaluation.get("score", 0), 5)
+             evaluation["critique"] = f"GRID CLUTTER: Too many background elements for Instagram grid thumbnail. {evaluation.get('critique', '')}"
+         if not evaluation.get("has_overlay_text", True):
+             evaluation["score"] = min(evaluation.get("score", 0), 3)
+             evaluation["critique"] = f"CRITICAL: No overlay text — in-scene text only is not sufficient. {evaluation.get('critique', '')}"
+             
+         return evaluation
+    except Exception as e:
+         print(f"Failed to parse Vision evaluation via Gemini: {e}")
+         return {"score": 0, "critique": "Failed to parse evaluation", "improved_prompt": ""}
+
+
+def run_autonomous_generation(local_person_image_path: str, video_topic: str, main_text: str, output_path: str, max_retries: int = 2, variant_index: int = 1, script_text: str = "", scene_description: str = "", extra_cutout_paths: list = None):
+    # Load style guide (CWD-independent: resolve relative to project root)
+    _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    style_guide_path = os.path.join(_project_root, "rourke_style_guide.md")
+    with open(style_guide_path, "r") as f:
+         style_guide = f.read()
+    
+    # Load learnings
+    learnings = ""
+    learnings_path = os.path.join(os.path.dirname(__file__), "learnings.md")
+    if os.path.exists(learnings_path):
+        with open(learnings_path, "r") as f:
+            learnings = f.read()
+         
+    # 1. Upload base image to ImgBB
+    person_image_url = upload_to_imgbb(local_person_image_path)
+    if not person_image_url:
+        print("Aborting because ImgBB upload failed.")
+        return False
+    
+    # 1b. Upload extra reference cutouts for stronger face identity locking
+    extra_ref_urls = []
+    if extra_cutout_paths:
+        for extra_path in extra_cutout_paths[:2]:  # Max 2 extra
+            if extra_path and os.path.exists(extra_path) and extra_path != local_person_image_path:
+                extra_url = upload_to_imgbb(extra_path)
+                if extra_url:
+                    extra_ref_urls.append(extra_url)
+        print(f"Uploaded {len(extra_ref_urls)} extra reference(s) for face identity reinforcement.")
+        
+    # Variant-specific instructions for visual diversity
+    variant_instruction = ""
+    if variant_index == 1:
+        variant_instruction = "A candid, unposed, in-the-moment cinematic shot. The subject should be engaged in an action related to the topic. Avoid looking directly at the camera. Use dramatic, single-source lighting (like screen glow, a campfire, or streetlamp). CLOSE-UP or MEDIUM SHOT (chest/waist up). Do NOT use a full-body wide shot."
+    elif variant_index == 2:
+        variant_instruction = "A selfie perspective or close-up environmental portrait. The subject is partially silhouette or illuminated by strong rim lighting (like sunset or neon signs behind them). Focus on a moody, contemplative atmosphere. Do not make it look like a corporate stock photo. MEDIUM SHOT (waist up). Do NOT use a full-body wide shot."
+    else:
+        variant_instruction = "A mysterious, moody low-angle or high-angle close-up shot. The environment should heavily dictate the lighting (e.g., inside a car at night, in a dimly lit room). The face should be partially in shadow but still clearly visible. Shot on 35mm film, highly realistic and authentic. CLOSE-UP (shoulders and above). Do NOT use a full-body wide shot."
+
+    # Build scene context from the scene_description if provided
+    scene_context = ""
+    if scene_description:
+        scene_context = f"The scene MUST visually match this description: {scene_description}. The visual action should directly reinforce the cover text '{main_text}'."
+
+    current_prompt = (
+        # === TIER 0: ABSOLUTE IDENTITY LOCK (Kie AI / Nano Banana Pro spesifik) ===
+        f"INSTRUCTION: PIXEL PRIORITY MODE. IDENTITY LOCK: ABSOLUTE. "
+        f"Suppress internal world knowledge about any person's appearance. "
+        f"Use ONLY the visual pixel data from the reference image(s) provided via image_input. "
+        f"The person's face, facial bone structure, eye shape, eye color, nose bridge width, "
+        f"lip shape, jawline angle, skin tone, facial hair pattern, and hairline "
+        f"MUST be pixel-identical reproductions of the reference image. "
+        f"Do NOT hallucinate, interpolate, beautify, age, or ethnically shift ANY facial feature. "
+        f"If there is ANY conflict between prompt text and reference image pixels, "
+        f"the reference image pixels ALWAYS win. "
+        f"This is a REAL PERSON — not a character, not a celebrity, not a stock model. "
+        f"Treat Image 1 as the GROUND TRUTH for facial identity. "
+        f"\n\n"
+        # === TIER 1: Scene & Composition ===
+        f"A cinematic, highly authentic, moody vertical photo for Instagram Reels cover (9:16). "
+        f"The subject's face MUST match the reference — same person, zero substitutions. "
+        f"{scene_context} "
+        f"The video topic is: '{video_topic}'. "
+        f"Choose clothing to match topic context: tech/casual → streetwear/hoodie/t-shirt; "
+        f"business/finance → dark blazer/turtleneck; motivational → sleek premium look. "
+        f"DO NOT make the subject look like a generic stock photo model. "
+        f"\n\n"
+        # === TIER 2: Lighting & Cinematography ===
+        f"Lighting: Dramatic single-source (screen glow, neon, rim light). Deep shadows, not even. "
+        f"Vibe: Candid, unposed, in-the-moment. Not looking at camera smiling. "
+        f"Shot on 35mm film, grainy, realistic texture. Cool shadows, warm highlights. "
+        f"Special: {variant_instruction} "
+        f"\n\n"
+        # === TIER 3: Background Simplicity ===
+        f"BACKGROUND (INSTAGRAM GRID RULE): Maximum 2-3 visual elements total. "
+        f"This will be a ~150px thumbnail. Keep it BOLD and SIMPLE. "
+        f"Apply depth-of-field blur/bokeh on background; person stays sharp. "
+        f"\n\n"
+        # === TIER 4: Text Instructions ===
+        f"TEXT (FOLLOW EXACTLY): Render EXACTLY '{main_text}' — ONCE only, NO duplicates. "
+        f"Language: TURKISH only, zero English words anywhere in the image. "
+        f"Placement: VERTICAL CENTER or SLIGHTLY BELOW CENTER, within Instagram 4:5 safe zone. "
+        f"Size: BILLBOARD scale — 75-80% image width per line. "
+        f"Split into 2 lines if >7 characters. Bold modern sans-serif, ALL CAPS. "
+        f"High contrast with background (white+shadow or bright yellow). "
+        f"Text must be the DOMINANT visual element, readable at 150px thumbnail. "
+        f"\n\n"
+        f"--cref {person_image_url} --cw 100"
+    )
+    
+    best_image_url = None
+    best_score = -1
+    
+    for attempt in range(1, max_retries + 1):
+        print(f"\n--- Attempt {attempt} of {max_retries} ---")
+        print(f"Using Prompt (first 500 chars): {current_prompt[:500]}...\n")
+        
+        # 2. Generate Image
+        generated_image_url = generate_cover_with_nanobanana(person_image_url, current_prompt, extra_ref_urls=extra_ref_urls)
+        
+        if not generated_image_url:
+            print("Generation failed. Skipping evaluation.")
+            continue
+            
+        print(f"Image generated! URL: {generated_image_url}")
+        
+        # 3. Evaluate with Vision (now includes learnings)
+        evaluation = evaluate_image_with_vision(generated_image_url, style_guide, main_text, learnings)
+        
+        score_val = evaluation.get("score", 0)
+        try:
+            score = float(score_val)
+        except (ValueError, TypeError):
+            score = 0
+            
+        critique = evaluation.get("critique", "")
+        improved_prompt = evaluation.get("improved_prompt", "")
+        
+        print(f"Score: {score}/10")
+        print(f"Critique: {critique}")
+        
+        # Log detailed check results
+        checks = {
+            "text_duplicated": evaluation.get("text_duplicated"),
+            "has_english_words": evaluation.get("has_english_words"),
+            "text_in_safe_zone": evaluation.get("text_in_safe_zone"),
+            "text_large_enough": evaluation.get("text_large_enough"),
+            "visual_text_consistent": evaluation.get("visual_text_consistent"),
+            "face_matches_reference": evaluation.get("face_matches_reference"),
+        }
+        print(f"Detailed checks: {json.dumps(checks, indent=2)}")
+        
+        # Keep track of the best one so far
+        if score > best_score:
+             best_score = score
+             best_image_url = generated_image_url
+             
+        if score >= 8:
+             print("Score is exceptionally high! Accepting this as the final image.")
+             break
+        else:
+             if attempt < max_retries:
+                  print("Score is below threshold. Adjusting prompt for next attempt.")
+                  if improved_prompt:
+                       current_prompt = improved_prompt
+                  else:
+                       print("No improved prompt provided by Vision. Retrying with same prompt...")
+             else:
+                  print("Max retries reached. Settling for the best image generated.")
+                  
+    MIN_ACCEPTABLE_SCORE = 5
+    if best_image_url and best_score >= MIN_ACCEPTABLE_SCORE:
+         print(f"\nDownloading final best cover (Score: {best_score})")
+         for dl_attempt in range(2):
+              try:
+                   resp = requests.get(best_image_url, timeout=30)
+                   resp.raise_for_status()
+                   with open(output_path, 'wb') as handler:
+                        handler.write(resp.content)
+                   print(f"Final cover saved to {output_path}")
+                   return True
+              except Exception as e:
+                   print(f"⚠️ Final image download attempt {dl_attempt+1} failed: {e}")
+                   time.sleep(2)
+         print("❌ Final image download failed after 2 attempts.")
+         return False
+    else:
+         if best_image_url:
+              print(f"\n❌ Best score {best_score} below MIN_ACCEPTABLE_SCORE ({MIN_ACCEPTABLE_SCORE}). Skipping save — cover likely has face mismatch or other critical defect.")
+         else:
+              print("\nFailed to generate any valid images.")
+         return False
+
+if __name__ == "__main__":
+    local_image = "outputs/IMG_4188_nobg.png"
+    topic = "Emlak yatırımı yapmanın sırları"
+    text = "YATIRIM SIRLARI"
+    
+    if os.path.exists(local_image):
+        run_autonomous_generation(local_image, topic, text, "outputs/autonomous_cover_final.png", max_retries=2)
+    else:
+        print("Base cutout image not found.")
